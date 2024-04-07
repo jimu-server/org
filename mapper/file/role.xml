@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="RoleMapper">
+    <!--查询全部角色-->
+    <select id="AllRole">
+        select *
+        from app_role
+    </select>
+
+    <!--查询角色列表-->
+    <select id="GetRole">
+        select *
+        from app_role
+        limit {End} offset {Start}
+    </select>
+    <!--创建角色-->
+    <insert id="CreateRole">
+        insert into app_role (id, name, role_key)
+        values ({Id}, {Name}, {RoleKey})
+    </insert>
+
+    <insert id="CreateOrgRole">
+        insert into app_org_role(id, org_id, role_id)
+        values ({Id}, {OrgId}, {RoleId})
+    </insert>
+
+    <!--删除指定角色-->
+    <delete id="DeleteRole">
+        delete
+        from app_role
+        where id = {Id}
+    </delete>
+
+
+    <update id="UpdateRole">
+        update app_role
+        set name={Name}
+        where id ={Id}
+    </update>
+
+
+</mapper>

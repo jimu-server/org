@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="SystemMapper">
+
+    <select id ="AllUserList">
+        select *
+        from app_user
+        order by app_user.create_time
+        limit {End} offset {Start}
+    </select>
+
+</mapper>

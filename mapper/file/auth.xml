@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="AuthMapper">
+
+    <select id="SelectAuthUserMenu">
+        select m.*
+        from app_org_user_role_router_auth ourma
+                 left join app_router m on (ourma.router_id = m.id)
+        where ourma.org_id = {OrgId}
+          and ourma.user_id = {UserId}
+          and ourma.role_id = {RoleId}
+        order by sort;
+    </select>
+
+    <select id="SelectAuthUserTool">
+        select t.*
+        from app_org_user_role_tool_auth ourta
+                 left join app_tool t on (ourta.tool_id = t.id)
+        where ourta.org_id = {OrgId}
+          and ourta.user_id = {UserId}
+          and ourta.role_id = {RoleId}
+          and t.position={Position}
+        order by create_time;
+    </select>
+
+    <select id="SelectOrgUserAuthToolMenu">
+        select t.*
+        from app_org_user_role_tool_auth ourta
+                 left join app_tool t on (ourta.tool_id = t.id)
+        where ourta.org_id = {OrgId}
+          and ourta.user_id = {UserId}
+          and ourta.role_id = {RoleId}
+        order by create_time;
+    </select>
+
+    <select id="SelectOrgUserAuthTool">
+        select t.*
+        from app_org_user_role_tool_auth ourta
+                 left join app_tool t on (ourta.tool_id = t.id)
+        where ourta.org_id = {OrgId}
+          and ourta.user_id = {UserId}
+          and ourta.role_id = {RoleId}
+        order by create_time;
+    </select>
+
+    <select id="SelectOrgRoleAuthTool">
+        select t.*
+        from app_org_user_role_tool_auth ourta
+                 left join app_tool t on (ourta.tool_id = t.id)
+        where ourta.org_id = {OrgId}
+          and ourta.user_id = {UserId}
+          and ourta.role_id = {RoleId}
+        order by create_time;
+    </select>
+
+    <select id="SelectOrgUserAuthToolRouter">
+        select r.*
+        from app_org_user_role_router_auth ourma
+                 left join app_router r on (ourma.router_id = r.id)
+        where ourma.org_id = {OrgId}
+          and ourma.user_id = {UserId}
+          and ourma.role_id = {RoleId}
+          and ourma.tool_id= {ToolId}
+        order by sort;
+    </select>
+
+    <select id="SelectAuthUserToolMenu">
+        select r.*
+        from app_org_user_role_router_auth ourma
+                 left join app_router r on (ourma.router_id = r.id)
+        where ourma.org_id = {OrgId}
+          and ourma.user_id = {UserId}
+          and ourma.role_id = {RoleId}
+          and r.tool_id= {ToolId}
+        order by sort;
+    </select>
+
+    <select id="SelectAuthUserToolMenuChild">
+        select r.*
+        from app_org_user_role_router_auth ourma
+                 left join app_router r on (ourma.router_id = r.id)
+        where ourma.org_id = {OrgId}
+          and ourma.user_id = {UserId}
+          and ourma.role_id = {RoleId}
+          and r.tool_id={ToolId}
+        order by sort;
+    </select>
+
+    <select id="SelectAuthAllUserRouterPath">
+        select m.path
+        from app_org_user_role_router_auth ourma
+                 left join app_router m on (ourma.router_id = m.id)
+        where ourma.org_id = {OrgId}
+          and ourma.user_id = {UserId}
+          and ourma.role_id = {RoleId}
+          and m.path!=''
+        order by sort;
+    </select>
+
+    <select id="SelectAuthAllUserToolRouterPath">
+        select t.path
+        from app_org_user_role_tool_auth ourta
+                 left join app_tool t on (ourta.tool_id = t.id)
+        where ourta.org_id = {OrgId}
+          and ourta.user_id = {UserId}
+          and ourta.role_id = {RoleId}
+          and t.path!=''
+        order by create_time;
+    </select>
+
+    <select id="SelectUserOrgList">
+        select app_org.*
+        from app_org_user
+                 left join app_org on app_org_user.org_id = app_org.id
+        where app_org_user.user_id = {UserId};
+    </select>
+
+    <select id="SelectAllOrg">
+        select *
+        from app_org
+    </select>
+
+    <select id="SelectUserOrgRoleList">
+        select r.*
+        from app_org_user ou
+                 left join app_org_user_role our on (ou.org_id = our.org_id and ou.user_id = our.user_id)
+                 left join app_role r on our.role_id = r.id
+        where ou.user_id ={UserId} and ou.org_id={OrgId};
+    </select>
+
+
+    <insert id="AddOrgUserRoleAuth">
+        insert into app_org_user_role(id, org_id, user_id, role_id)
+        values
+        <for slice="{list}" item="obj"  separator=",">
+            ({obj.Id},{obj.OrgId},{obj.UserId},{obj.RoleId})
+        </for>
+    </insert>
+
+    <delete id="DeleteOrgUserRoleAuth">
+        delete
+        from app_org_user_role
+        where org_id ={OrgId} and user_id={UserId} and role_id in
+        <for slice="{list}" item="id" open="(" separator="," close=")">
+            {id}
+        </for>
+    </delete>
+
+    <select id="SelectOrgRoleToolAuth">
+        select arra.tool_id
+        from app_org_role aor
+                 left join app_org_role_tool_auth arra on aor.role_id = arra.role_id
+        where arra.org_id = {OrgId}
+          and aor.role_id = {RoleId};
+    </select>
+
+    <select id="SelectOrgRoleRouterAuth">
+        select arra.router_id
+        from app_org_role aor
+                 left join app_org_role_router_auth arra on aor.role_id = arra.role_id
+        where arra.org_id = {OrgId}
+          and aor.role_id = {RoleId}
+          and tool_id={ToolId};
+    </select>
+
+    <insert id="AddOrgUserRoleToolAuth">
+        insert into app_org_user_role_tool_auth(id, user_id, role_id, org_id, tool_id)
+        values
+        <for slice="{list}" item="obj" separator=",">
+            ({obj.Id},{obj.UserId},{obj.RoleId},{obj.OrgId},{obj.ToolId})
+        </for>
+    </insert>
+    <delete id="DelOrgUserRoleToolAuth">
+        delete
+        from app_org_user_role_tool_auth
+        where org_id ={OrgId} and user_id= {UserId} and role_id= {RoleId} and tool_id in
+        <for slice="{list}" item="obj" open="(" close=")" separator=",">
+            {obj.Id}
+        </for>
+    </delete>
+
+    <insert id="AddOrgUserRoleToolRouterAuth">
+        insert into app_org_user_role_router_auth(id, org_id, user_id, role_id, tool_id, router_id)
+        values
+        <for slice="{list}" item="obj" separator=",">
+            ({obj.Id},{obj.OrgId},{obj.UserId},{obj.RoleId},{obj.ToolId},{obj.RouterId})
+        </for>
+    </insert>
+
+    <delete id="DelOrgUserRoleToolRouterAuth">
+        delete
+        from app_org_user_role_router_auth
+        where org_id ={OrgId} and user_id= {UserId} and role_id= {RoleId} and tool_id={ToolId} and router_id in
+        <for slice="{list}" item="obj" open="(" close=")" separator=",">
+            {obj.Id}
+        </for>
+    </delete>
+
+
+    <select id="OrgRoleToolList">
+        select at.*
+        from app_org_role aor
+                 left join app_org_role_tool_auth aorta on aor.role_id = aorta.role_id
+                 left join app_tool at on at.id = aorta.tool_id
+        where aor.org_id = {OrgId}
+          and aor.role_id = {RoleId}
+          and aorta.id is not null;
+    </select>
+
+    <select id="OrgRoleToolRouterList">
+        select ar.*
+        from app_org_role aor
+                 left join app_org_role_router_auth aorra on (aor.role_id = aorra.role_id and aor.org_id = aorra.org_id)
+                 left join app_router ar on ar.id = aorra.router_id
+        where aorra.org_id = {OrgId}
+          and aor.role_id = {RoleId}
+          and aorra.tool_id = {ToolId};
+    </select>
+
+    <insert id="OrgRoleToolAuth">
+        insert into app_org_role_tool_auth(id, role_id, tool_id, org_id)
+        values
+        <for slice="{list}" item="obj" separator=",">
+            ({obj.Id},{obj.RoleId},{obj.ToolId},{obj.OrgId})
+        </for>
+    </insert>
+
+    <insert id="OrgRoleToolRouterAuth">
+        insert into app_org_role_router_auth(id, role_id, tool_id, router_id, org_id)
+        values
+        <for slice="{list}" item="obj" separator=",">
+            ({obj.Id},{obj.RoleId},{obj.ToolId},{obj.RouterId},{obj.OrgId})
+        </for>
+    </insert>
+
+    <delete id="OrgRoleToolUnAuth">
+        delete
+        from app_org_role_tool_auth
+        where org_id ={OrgId} and role_id ={RoleId} and tool_id in
+        <for slice="{list}" item="obj" open="(" close=")" separator=",">
+            {obj.Id}
+        </for>
+    </delete>
+
+    <delete id="OrgRoleToolRouterUnAuth">
+        delete
+        from app_org_role_router_auth
+        where org_id ={OrgId} and role_id ={RoleId} and tool_id={ToolId} and router_id in
+        <for slice="{list}" item="obj" open="(" close=")" separator=",">
+            {obj.Id}
+        </for>
+    </delete>
+
+
+</mapper>

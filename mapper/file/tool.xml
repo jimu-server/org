@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="ToolMapper">
+    <select id="GetTool">
+        select *
+        from app_tool
+        limit {End} offset {Start}
+    </select>
+
+    <select id="GetToolRouter">
+        select ar.*
+        from app_tool at
+        left join app_router ar on at.id = ar.tool_id
+        where tool_id={ToolId} and pid={Pid} limit {PageArgs.End} offset {PageArgs.Start};
+    </select>
+
+    <select id="GetToolRouterChild">
+        select ar.*
+        from app_tool at
+        left join app_router ar on at.id = ar.tool_id
+        where tool_id={ToolId} and pid={Pid};
+    </select>
+
+    <insert id="CreateTool">
+        insert into app_tool (id, name, router_name, icon, type, component, btn, ws, pull, path, tip, position)
+        values ({Id}, {Name}, {RouteName}, {Icon}, {Type}, {Component}, {Btn}, {Ws}, {Pull}, {Path}, {Tip}, {Position})
+    </insert>
+    <delete id="DeleteTool">
+        delete
+        from app_tool
+        where id in
+        <for slice="{list}" item="id" open="(" separator="," close=")">
+            {id}
+        </for>
+    </delete>
+
+    <select id="CheckTool">
+        select exists(select id
+                      from app_tool
+                      where router_name = {RouterName} or path = {Path} or component = {Component}) as flag;
+    </select>
+
+</mapper>

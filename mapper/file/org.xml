@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="OrgMapper">
+    <!--查询全部组织-->
+    <select id="AllOrg">
+        select * from app_org
+    </select>
+
+    <!--查询指定组织的子组织-->
+    <select id="GetOrgChild">
+        select * from app_org where pid = {Id} limit {End} offset {Start}
+    </select>
+
+    <select id="GetOrgUserList">
+        select u.*
+        from app_org_user ou
+                 left join app_user u on ou.user_id = u.id
+        where org_id ={OrgId} limit {End} offset {Start}
+    </select>
+
+    <select id="GetOrgRoleList">
+        select r.*
+        from app_role r
+                 left join app_org_role aor on aor.role_id = r.id
+        where aor.org_id ={OrgId} limit {PageArgs.End} offset {PageArgs.Start}
+    </select>
+
+    <!--创建组织-->
+    <insert id="CreateOrg">
+        insert into app_org (id,pid, name) values ({Id},{Pid}, {Name})
+    </insert>
+    <!--删除指定组织-->
+    <delete id="DeleteOrg">
+        delete
+        from app_org
+        where id = {Id}
+    </delete>
+    <!--判断组织是否有子节点-->
+    <select id="IsParentOrg">
+        select id
+        from app_org
+        where pid = {Id}
+    </select>
+
+
+    <select id="ExistUser">
+        select distinct(id) from app_org_user where org_id={Id}
+    </select>
+
+
+    <update id="UpdateOrg">
+        update app_org set name={Name} where id ={Id} and pid={Pid}
+    </update>
+
+
+    <select id="GetDictionary">
+        select * from app_dictionary;
+    </select>
+
+</mapper>

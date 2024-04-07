@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="FunMapper">
+    <select id="GetFun">
+        select * from app_fun  limit {End} offset {Start}
+    </select>
+    <insert id="CreateFun">
+        insert into app_fun (id,method, name,path,status) values ({Id},{Method},{Name},{Path},{Status})
+    </insert>
+    <delete id="DeleteFun">
+        delete
+        from app_fun
+        where id in
+        <for slice="{list}" item="id" open="(" separator="," close=")">
+            {id}
+        </for>
+    </delete>
+</mapper>

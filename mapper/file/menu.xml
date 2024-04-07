@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="MenuMapper">
+
+    <select id ="SelectAllMenu">
+        select *
+        from app_router
+        order by sort;
+    </select>
+</mapper>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="DefaultInfoMapper">
+
+    <select id="SelectUserDefaultOrg">
+        select app_org.*
+        from app_org_user
+                 left join app_org on app_org_user.org_id = app_org.id
+        where user_id ={UserId} and first_choice= true
+    </select>
+
+    <select id="SelectUserDefaultRole">
+        select app_role.*
+        from app_org_user_role
+                 left join app_role on app_org_user_role.role_id = app_role.id
+        where user_id ={UserId} and org_id={OrgId} and first_choice= true
+    </select>
+
+    <select id="SelectUserInfo">
+        select *
+        from app_user
+        where id ={UserId}
+    </select>
+
+</mapper>

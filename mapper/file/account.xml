@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mapper namespace="AccountMapper">
+
+    <!-- 注册新用户 -->
+    <insert id="Register">
+        insert into app_user (id, name, picture, account, password, created)
+        values ({Id}, {Name}, {Picture}, {Account}, {Password}, {Created})
+    </insert>
+
+    <!-- 检查用户是否注册 -->
+    <select id="IsRegister">
+        select exists (select 1 from app_user where account ={Account})
+    </select>
+
+    <select id="SelectAccount">
+        select *
+        from app_user
+        where account ={Account}
+    </select>
+
+    <select id ="SelectUserByName">
+        select account
+        from app_user
+        where name = {Value}
+    </select>
+
+    <select id="SelectUserByAccount">
+        select account
+        from app_user
+        where account ={Value}
+    </select>
+
+</mapper>
