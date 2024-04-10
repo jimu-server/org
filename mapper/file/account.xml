@@ -9,16 +9,16 @@
 
     <!-- 检查用户是否注册 -->
     <select id="IsRegister">
-        select exists (select 1 from app_user where account ={Account})
+        select exists (select 1 from app_user where account = {Account})
     </select>
 
     <select id="SelectAccount">
         select *
         from app_user
-        where account ={Account}
+        where account = {Account}
     </select>
 
-    <select id ="SelectUserByName">
+    <select id="SelectUserByName">
         select account
         from app_user
         where name = {Value}
@@ -27,7 +27,36 @@
     <select id="SelectUserByAccount">
         select account
         from app_user
-        where account ={Value}
+        where account = {Value}
     </select>
+
+    <update id="UpdateUserName">
+        update app_user
+        set name={Name}
+        where id = {Id}
+    </update>
+    <update id="UpdateUserAge">
+        update app_user
+        set age={Age}
+        where id = {Id}
+    </update>
+    <update id="UpdateUserGender">
+        update app_user
+        set gender={Gender}
+        where id = {Id}
+    </update>
+    <update id="UpdateUserAvatar">
+        update app_user
+        set picture={Picture}
+        where id = {Id}
+    </update>
+
+    <update id="UpdateUserOrgRole">
+        update app_org_user_role
+        set first_choice= {Flag}
+        where org_id = {OrgId}
+          and user_id = {UserId}
+          and role_id = {RoleId}
+    </update>
 
 </mapper>

@@ -273,3 +273,34 @@ func UpdateAvatar(c *gin.Context) {
 	}
 	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }
+
+func UpdateOrgRole(c *gin.Context) {
+	var err error
+	var body *UpdateUserOrgRole
+	token := c.MustGet(auth.Key).(*auth.Token)
+	web.BindJSON(c, &body)
+	var begin *sql.Tx
+	if begin, err = db.DB.Begin(); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败,请联系管理员")))
+		return
+	}
+	params := make(map[string]any)
+	params["UserId"] = token.Id
+	params["OrgId"] = body.OrgId
+	params["RoleId"] = body.OldRoleId
+	params["Flag"] = false
+	if err = AccountMapper.UpdateUserOrgRole(params, begin); err != nil {
+		begin.Rollback()
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	params["RoleId"] = body.NewRoleId
+	params["Flag"] = true
+	if err = AccountMapper.UpdateUserOrgRole(params, begin); err != nil {
+		begin.Rollback()
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	begin.Commit()
+	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
+}

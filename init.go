@@ -78,5 +78,6 @@ func init() {
 	api.GET("/user/all", control.AllUser)                               // 获取系统所有用户
 	api.POST("/user/update", control.UpdateUserInfo)                    // 更新用户信息
 	api.POST("/user/update/avatar", control.UpdateAvatar)               // 更新用户头像
+	api.POST("/user/org/update/role", control.UpdateOrgRole)            // 设置指定组织的默认角色
 
 }

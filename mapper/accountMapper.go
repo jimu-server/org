@@ -10,4 +10,11 @@ type AccountMapper struct {
 	IsRegister func(user model.User) (bool, error)
 
 	SelectAccount func(any) (model.User, error)
+
+	UpdateUserName   func(any, *sql.Tx) error
+	UpdateUserGender func(any, *sql.Tx) error
+	UpdateUserAge    func(any, *sql.Tx) error
+	UpdateUserAvatar func(any) error
+
+	UpdateUserOrgRole func(any, *sql.Tx) error
 }

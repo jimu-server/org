@@ -110,6 +110,15 @@ type UpdateUserInfoArgs struct {
 	Age    *int    `form:"age" json:"age"`
 }
 
+type UpdateUserOrgRole struct {
+	// 老的默认角色id
+	OldRoleId string `form:"oldRoleId" json:"oldRoleId" binding:"required"`
+	// 新的默认角色id
+	NewRoleId string `form:"newRoleId" json:"newRoleId" binding:"required"`
+	// 变更默认角色的组织id
+	OrgId string `form:"orgId" json:"orgId" binding:"required"`
+}
+
 type UpdateUserPasswordArgs struct {
 	Password string `form:"password" json:"password" binding:"required,min=6,max=20"`
 }
