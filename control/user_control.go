@@ -1,22 +1,26 @@
 package control
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/jimu-server/common/resp"
+	"github.com/jimu-server/config"
 	"github.com/jimu-server/db"
 	"github.com/jimu-server/middleware/auth"
 	"github.com/jimu-server/model"
 	"github.com/jimu-server/mq/mq_key"
 	"github.com/jimu-server/mq/rabbmq"
+	"github.com/jimu-server/oss"
 	"github.com/jimu-server/util/accountutil"
 	"github.com/jimu-server/util/pageutils"
 	"github.com/jimu-server/util/uuidutils/uuid"
 	"github.com/jimu-server/web"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"mime/multipart"
 	"net/http"
 	"time"
 )
@@ -191,4 +195,81 @@ func AllUser(c *gin.Context) {
 		return
 	}
 	c.JSON(200, resp.Success(resp.NewPage(count, users), resp.Msg("查询成功")))
+}
+
+func UpdateUserInfo(c *gin.Context) {
+	var err error
+	var body *UpdateUserInfoArgs
+	var begin *sql.Tx
+	token := c.MustGet(auth.Key).(*auth.Token)
+	web.BindJSON(c, &body)
+	if begin, err = db.DB.Begin(); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("更新失败,请联系管理员")))
+		return
+	}
+	params := make(map[string]any)
+	params["Id"] = token.Id
+	if body.Name != nil {
+		params["Name"] = *body.Name
+		if err = AccountMapper.UpdateUserName(params, begin); err != nil {
+			begin.Rollback()
+			logs.Error(err.Error())
+			c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+			return
+		}
+	}
+	if body.Age != nil {
+		params["Age"] = *body.Age
+		if err = AccountMapper.UpdateUserAge(params, begin); err != nil {
+			begin.Rollback()
+			logs.Error(err.Error())
+			c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+			return
+		}
+	}
+	if body.Gender != nil {
+		params["Gender"] = *body.Gender
+		if err = AccountMapper.UpdateUserGender(params, begin); err != nil {
+			begin.Rollback()
+			logs.Error(err.Error())
+			c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+			return
+		}
+	}
+	begin.Commit()
+	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
+}
+
+func UpdateAvatar(c *gin.Context) {
+	var err error
+	var file *multipart.FileHeader
+	var open multipart.File
+	token := c.MustGet(auth.Key).(*auth.Token)
+	// 单文件
+	if file, err = c.FormFile("avatar"); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("上传失败")))
+		return
+	}
+	if open, err = file.Open(); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("上传失败")))
+		return
+	}
+	// 创建存储路径
+	name := fmt.Sprintf("%s/avatar/%s", token.Id, file.Filename)
+	// 执行推送到对象存储
+	if _, err = oss.Tencent.Object.Put(context.Background(), name, open, nil); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("上传失败")))
+		return
+	}
+	full := fmt.Sprintf("%s/%s", config.Evn.App.Tencent.BucketURL, name)
+	// 更新数据库
+	params := map[string]any{
+		"Id":      token.Id,
+		"Picture": full,
+	}
+	if err = AccountMapper.UpdateUserAvatar(params); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }

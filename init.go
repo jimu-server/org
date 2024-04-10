@@ -36,6 +36,7 @@ func init() {
 	api.POST("/org/delete", control.DeleteOrg)                             // 删除组织
 	api.POST("/org/update", control.UpdateOrgInfo)                         // 更新组织信息
 	api.GET("/org/list", control.GetOrg)                                   // 获取组织列表
+	api.GET("/org/default/role", control.GetOrg)                           // 获取组织列表
 	api.GET("/org/user/list", control.GetOrgUserList)                      // 获取组织下所有的用户列表
 	api.GET("/org/role/list", control.GetOrgRoleList)                      // 获取组织下所有的角色列表
 	api.GET("/org/user/role", control.GetOrgUserRoleList)                  // 获取组织指定用户的所有已授权角色列表
@@ -75,5 +76,7 @@ func init() {
 	api.GET("/user/org/listTree", control.UserJoinOrgTreeList)          // 获取用户当前所有已加入的组织及其所有下属组织树形结构
 	api.GET("/user/org/list/role", control.UserJoinOrgRoleList)         // 获取用户当前已加入的组织下所有的角色
 	api.GET("/user/all", control.AllUser)                               // 获取系统所有用户
+	api.POST("/user/update", control.UpdateUserInfo)                    // 更新用户信息
+	api.POST("/user/update/avatar", control.UpdateAvatar)               // 更新用户头像
 
 }

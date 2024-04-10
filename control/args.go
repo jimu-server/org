@@ -103,3 +103,13 @@ type ToolRouterArgs struct {
 	ToolId string `form:"toolId" json:"toolId"`
 	PageArgs
 }
+
+type UpdateUserInfoArgs struct {
+	Name   *string `form:"name" json:"name"`
+	Gender *int    `form:"gender" json:"gender"`
+	Age    *int    `form:"age" json:"age"`
+}
+
+type UpdateUserPasswordArgs struct {
+	Password string `form:"password" json:"password" binding:"required,min=6,max=20"`
+}
