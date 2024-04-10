@@ -79,5 +79,7 @@ func init() {
 	api.POST("/user/update", control.UpdateUserInfo)                    // 更新用户信息
 	api.POST("/user/update/avatar", control.UpdateAvatar)               // 更新用户头像
 	api.POST("/user/org/update/role", control.UpdateOrgRole)            // 设置指定组织的默认角色
+	api.POST("/user/org/update/org", control.UpdateUserOrg)             // 设置用户的默认组织
+	api.GET("/user/secure", control.GetSecure)                          // 获取用户账号安全相关信息
 
 }

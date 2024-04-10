@@ -18,6 +18,12 @@
         where account = {Account}
     </select>
 
+    <select id="SelectUserById">
+        select *
+        from app_user
+        where id = {Id}
+    </select>
+
     <select id="SelectUserByName">
         select account
         from app_user
@@ -57,6 +63,13 @@
         where org_id = {OrgId}
           and user_id = {UserId}
           and role_id = {RoleId}
+    </update>
+
+    <update id="UpdateUserOrg">
+        update app_org_user
+        set first_choice= {Flag}
+        where org_id = {OrgId}
+          and user_id = {UserId}
     </update>
 
 </mapper>

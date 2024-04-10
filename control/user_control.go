@@ -304,3 +304,55 @@ func UpdateOrgRole(c *gin.Context) {
 	begin.Commit()
 	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }
+
+func UpdateUserOrg(c *gin.Context) {
+	var err error
+	var body *UpdateUserOrgArgs
+	token := c.MustGet(auth.Key).(*auth.Token)
+	web.BindJSON(c, &body)
+	var begin *sql.Tx
+	if begin, err = db.DB.Begin(); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败,请联系管理员")))
+		return
+	}
+	params := make(map[string]any)
+	params["UserId"] = token.Id
+	params["OrgId"] = body.OldOrgId
+	params["Flag"] = false
+	if err = AccountMapper.UpdateUserOrg(params, begin); err != nil {
+		begin.Rollback()
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	params["OrgId"] = body.NewOrgId
+	params["Flag"] = true
+	if err = AccountMapper.UpdateUserOrg(params, begin); err != nil {
+		begin.Rollback()
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	begin.Commit()
+	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
+}
+
+func GetSecure(c *gin.Context) {
+	var err error
+	var user model.User
+	token := c.MustGet(auth.Key).(*auth.Token)
+	params := map[string]any{
+		"Id": token.Id,
+	}
+	if user, err = AccountMapper.SelectUserById(params); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
+		return
+	}
+	data := make(map[string]any)
+	if user.Password != "" {
+		data["password"] = "******"
+	} else {
+		data["password"] = ""
+	}
+	data["phone"] = user.Phone
+	data["email"] = user.Email
+	c.JSON(200, resp.Success(data, resp.Msg("获取成功")))
+}

@@ -119,6 +119,11 @@ type UpdateUserOrgRole struct {
 	OrgId string `form:"orgId" json:"orgId" binding:"required"`
 }
 
+type UpdateUserOrgArgs struct {
+	OldOrgId string `form:"oldOrgId" json:"oldOrgId" binding:"required"`
+	NewOrgId string `form:"newOrgId" json:"newOrgId" binding:"required"`
+}
+
 type UpdateUserPasswordArgs struct {
 	Password string `form:"password" json:"password" binding:"required,min=6,max=20"`
 }
