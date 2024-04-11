@@ -22,6 +22,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"mime/multipart"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -347,12 +348,18 @@ func GetSecure(c *gin.Context) {
 		return
 	}
 	data := make(map[string]any)
+	data["password"] = ""
 	if user.Password != "" {
 		data["password"] = "******"
-	} else {
-		data["password"] = ""
 	}
 	data["phone"] = user.Phone
+	if user.Phone != "" {
+		data["phone"] = user.Phone[:3] + "****" + user.Phone[7:]
+	}
 	data["email"] = user.Email
+	if user.Email != "" {
+		index := strings.Index(user.Email, "@")
+		data["email"] = user.Email[:3] + "****" + user.Email[index-2:]
+	}
 	c.JSON(200, resp.Success(data, resp.Msg("获取成功")))
 }
