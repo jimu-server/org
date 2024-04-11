@@ -26,8 +26,10 @@ func init() {
 	web.Engine.GET("/menu", control.AllMenu)
 
 	api := web.Engine.Group("/public")
-	api.POST("/register", control.Register)
-	api.POST("/login", control.Login)
+	api.POST("/register", control.Register)   // 用户注册接口
+	api.POST("/login", control.Login)         // 密码登录
+	api.POST("/phone", control.PhoneLogin)    // 手机登录
+	api.GET("/login_code", control.PhoneCode) // 手机号获取登录验证码
 
 	api = web.Engine.Group("/api", auth.Authorization())
 
@@ -64,22 +66,27 @@ func init() {
 	api.POST("/fun/delete", control.DeleteFun) // 删除功能
 	api.GET("/fun/list", control.GetFun)       // 获取功能列表
 
-	api.GET("/user/auth/menu", control.GetAuthMenu)                     // 获取当前用户的已授权菜单
-	api.GET("/user/auth/tool", control.GetAuthTool)                     // 获取当前用户的已授权工具栏
-	api.GET("/user/auth/tool/menu", control.GetAuthToolMenu)            // 获取当前用户的已授权工具栏的菜单路由
-	api.GET("/user/auth/tool/menu/child", control.GetAuthToolMenuChild) // 获取当前用户的已授权工具栏的菜单路由的子路由
-	api.GET("/user/default/info", control.GetUserDefaultInfo)           // 获取当前用户的默认组织,和默认组织的默认角色
-	api.GET("/user/default/org/role", control.GetOrgDefaultRole)        // 获取当前用户 对应组织的默认角色
-	api.GET("/user/info", control.UserInfo)                             // 获取当前用户信息
-	api.GET("/user/all_auth_route", control.UserAuthAllRoute)           // 获取用户当前组织的当前角色所有已授权的前端路由
-	api.GET("/user/org/list", control.UserJoinOrgList)                  // 获取用户当前所有已加入的组织
-	api.GET("/user/org/listTree", control.UserJoinOrgTreeList)          // 获取用户当前所有已加入的组织及其所有下属组织树形结构
-	api.GET("/user/org/list/role", control.UserJoinOrgRoleList)         // 获取用户当前已加入的组织下所有的角色
-	api.GET("/user/all", control.AllUser)                               // 获取系统所有用户
-	api.POST("/user/update", control.UpdateUserInfo)                    // 更新用户信息
-	api.POST("/user/update/avatar", control.UpdateAvatar)               // 更新用户头像
-	api.POST("/user/org/update/role", control.UpdateOrgRole)            // 设置指定组织的默认角色
-	api.POST("/user/org/update/org", control.UpdateUserOrg)             // 设置用户的默认组织
-	api.GET("/user/secure", control.GetSecure)                          // 获取用户账号安全相关信息
+	api.GET("/user/auth/menu", control.GetAuthMenu)                          // 获取当前用户的已授权菜单
+	api.GET("/user/auth/tool", control.GetAuthTool)                          // 获取当前用户的已授权工具栏
+	api.GET("/user/auth/tool/menu", control.GetAuthToolMenu)                 // 获取当前用户的已授权工具栏的菜单路由
+	api.GET("/user/auth/tool/menu/child", control.GetAuthToolMenuChild)      // 获取当前用户的已授权工具栏的菜单路由的子路由
+	api.GET("/user/default/info", control.GetUserDefaultInfo)                // 获取当前用户的默认组织,和默认组织的默认角色
+	api.GET("/user/default/org/role", control.GetOrgDefaultRole)             // 获取当前用户 对应组织的默认角色
+	api.GET("/user/info", control.UserInfo)                                  // 获取当前用户信息
+	api.GET("/user/all_auth_route", control.UserAuthAllRoute)                // 获取用户当前组织的当前角色所有已授权的前端路由
+	api.GET("/user/org/list", control.UserJoinOrgList)                       // 获取用户当前所有已加入的组织
+	api.GET("/user/org/listTree", control.UserJoinOrgTreeList)               // 获取用户当前所有已加入的组织及其所有下属组织树形结构
+	api.GET("/user/org/list/role", control.UserJoinOrgRoleList)              // 获取用户当前已加入的组织下所有的角色
+	api.GET("/user/all", control.AllUser)                                    // 获取系统所有用户
+	api.POST("/user/update", control.UpdateUserInfo)                         // 更新用户信息
+	api.POST("/user/update/avatar", control.UpdateAvatar)                    // 更新用户头像
+	api.POST("/user/org/update/role", control.UpdateOrgRole)                 // 设置指定组织的默认角色
+	api.POST("/user/org/update/org", control.UpdateUserOrg)                  // 设置用户的默认组织
+	api.GET("/user/secure", control.GetSecure)                               // 获取用户账号安全相关信息
+	api.POST("/user/secure/update/password", control.UpdateUserPassword)     // 更新用户密码
+	api.GET("/user/secure/update/phone/code", control.GetPhoneSecureCode)    // 更新手机获取验证码
+	api.POST("/user/secure/update/phone/code/check", control.CheckPhoneCode) // 更新用户手机号,验证码校验
+	api.POST("/user/secure/update/phone", control.UpdateUserPhone)           // 更新用户手机
+	api.POST("/user/secure/update/email", control.UpdateUserEmail)           // 更新用户邮箱
 
 }

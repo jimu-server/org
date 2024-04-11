@@ -12,10 +12,11 @@ type AccountMapper struct {
 	SelectAccount  func(any) (model.User, error)
 	SelectUserById func(any) (model.User, error)
 
-	UpdateUserName   func(any, *sql.Tx) error
-	UpdateUserGender func(any, *sql.Tx) error
-	UpdateUserAge    func(any, *sql.Tx) error
-	UpdateUserAvatar func(any) error
+	UpdateUserName     func(any, *sql.Tx) error
+	UpdateUserGender   func(any, *sql.Tx) error
+	UpdateUserAge      func(any, *sql.Tx) error
+	UpdateUserAvatar   func(any) error
+	UpdateUserPassword func(any) error
 
 	UpdateUserOrgRole func(any, *sql.Tx) error
 	UpdateUserOrg     func(any, *sql.Tx) error

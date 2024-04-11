@@ -15,13 +15,17 @@ import (
 	"github.com/jimu-server/mq/mq_key"
 	"github.com/jimu-server/mq/rabbmq"
 	"github.com/jimu-server/oss"
+	"github.com/jimu-server/redis/cache"
+	"github.com/jimu-server/redis/redisUtil"
 	"github.com/jimu-server/util/accountutil"
 	"github.com/jimu-server/util/pageutils"
 	"github.com/jimu-server/util/uuidutils/uuid"
 	"github.com/jimu-server/web"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"math/rand"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -362,4 +366,91 @@ func GetSecure(c *gin.Context) {
 		data["email"] = user.Email[:3] + "****" + user.Email[index-2:]
 	}
 	c.JSON(200, resp.Success(data, resp.Msg("获取成功")))
+}
+
+func PhoneLogin(c *gin.Context) {
+	var err error
+	var body *PhoneLoginArgs
+	web.BindJSON(c, &body)
+	var value = ""
+	if value, err = redisUtil.Get(cache.PhoneLoginKey + cache.Separator + body.Phone); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("验证码失效")))
+		return
+	}
+	if value != body.Code {
+		c.JSON(500, resp.Error(err, resp.Msg("验证码错误")))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("登录成功")))
+}
+
+func PhoneCode(c *gin.Context) {
+	value := rand.Intn(100000)
+	phone := c.Query("phone")
+	v := strconv.Itoa(value * 10)
+	if err := redisUtil.SetEx(cache.PhoneLoginKey+cache.Separator+phone, v, cache.PhoneCodeTime); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
+		return
+	}
+	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
+}
+
+func GetPhoneSecureCode(c *gin.Context) {
+	value := rand.Intn(100000)
+	phone := c.Query("phone")
+	v := strconv.Itoa(value * 10)
+	if err := redisUtil.SetEx(cache.PhoneSecureKey+cache.Separator+phone, v, cache.PhoneCodeTime); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
+		return
+	}
+	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
+}
+
+func CheckPhoneCode(c *gin.Context) {
+	var err error
+	var body *SecureArgs
+	web.BindJSON(c, &body)
+	var value = ""
+	if value, err = redisUtil.Get(cache.PhoneSecureKey + cache.Separator + body.Phone); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("验证码失效")))
+		return
+	}
+	if value != body.Code {
+		c.JSON(500, resp.Error(err, resp.Msg("验证码错误")))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("验证码正确")))
+}
+
+func UpdateUserPassword(c *gin.Context) {
+	var err error
+	var body *SecureArgs
+	web.BindJSON(c, &body)
+	token := c.MustGet(auth.Key).(*auth.Token)
+	var user model.User
+	if user, err = AccountMapper.SelectUserById(map[string]any{"Id": token.Id}); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	hash := accountutil.Password(body.Password)
+	if user.Password != hash {
+		c.JSON(500, resp.Error(err, resp.Msg("密码错误")))
+		return
+	}
+	newPassword := accountutil.Password(body.NewPassword)
+	if err = AccountMapper.UpdateUserPassword(map[string]any{"Id": token.Id, "Password": newPassword}); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
+}
+
+func UpdateUserPhone(c *gin.Context) {
+
+}
+
+func UpdateUserEmail(c *gin.Context) {
+
 }

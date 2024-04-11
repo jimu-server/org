@@ -127,3 +127,16 @@ type UpdateUserOrgArgs struct {
 type UpdateUserPasswordArgs struct {
 	Password string `form:"password" json:"password" binding:"required,min=6,max=20"`
 }
+
+type PhoneLoginArgs struct {
+	Phone string `form:"phone" json:"phone" binding:"required"`
+	Code  string `form:"code" json:"code" binding:"required"`
+}
+
+type SecureArgs struct {
+	NewPassword string `form:"newPassword" json:"newPassword""`
+	Password    string `form:"password" json:"password" `
+	Code        string `form:"code" json:"code"`
+	Phone       string `form:"phone" json:"phone" `
+	Email       string `form:"email" json:"email" `
+}
