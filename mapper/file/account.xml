@@ -78,4 +78,25 @@
         where id = {Id}
     </update>
 
+    <update id="UpdateUserPhone">
+        update app_user
+        set phone={Phone}
+        where id = {Id}
+    </update>
+
+    <update id="UpdateUserEmail">
+        update app_user
+        set email={Email}
+        where id = {Id}
+    </update>
+
+    <select id="CheckUserPhone">
+        select exists(select id from app_user where phone = {Phone})
+    </select>
+
+    <select id="CheckUserEmail">
+        select exists(select id from app_user where email = {Email})
+    </select>
+
+
 </mapper>

@@ -448,9 +448,52 @@ func UpdateUserPassword(c *gin.Context) {
 }
 
 func UpdateUserPhone(c *gin.Context) {
-
+	var err error
+	var body *SecureArgs
+	web.BindJSON(c, &body)
+	token := c.MustGet(auth.Key).(*auth.Token)
+	var check bool
+	params := map[string]any{"Id": token.Id, "Phone": body.Phone}
+	if check, err = AccountMapper.CheckUserPhone(params); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	if check {
+		c.JSON(500, resp.Error(err, resp.Msg("手机号已存在")))
+		return
+	}
+	if err = AccountMapper.UpdateUserPhone(params); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }
 
 func UpdateUserEmail(c *gin.Context) {
+	var err error
+	var body *SecureArgs
+	web.BindJSON(c, &body)
+	token := c.MustGet(auth.Key).(*auth.Token)
+	var check bool
+	params := map[string]any{"Id": token.Id, "Phone": body.Phone}
+	if check, err = AccountMapper.CheckUserPhone(params); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}
+	if check {
+		c.JSON(500, resp.Error(err, resp.Msg("手机号已存在")))
+		return
+	}
 
+	// 发送激活链接
+
+	/*if err = AccountMapper.UpdateUserPhone(params); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
+		return
+	}*/
+	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }

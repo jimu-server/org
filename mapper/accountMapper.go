@@ -17,7 +17,12 @@ type AccountMapper struct {
 	UpdateUserAge      func(any, *sql.Tx) error
 	UpdateUserAvatar   func(any) error
 	UpdateUserPassword func(any) error
+	UpdateUserPhone    func(any) error
+	UpdateUserEmail    func(any) error
 
 	UpdateUserOrgRole func(any, *sql.Tx) error
 	UpdateUserOrg     func(any, *sql.Tx) error
+
+	CheckUserPhone func(any) (bool, error)
+	CheckUserEmail func(any) (bool, error)
 }
