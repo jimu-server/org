@@ -72,4 +72,10 @@
           and user_id = {UserId}
     </update>
 
+    <update id="UpdateUserPassword">
+        update app_user
+        set password={Password}
+        where id = {Id}
+    </update>
+
 </mapper>
