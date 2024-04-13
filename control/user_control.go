@@ -399,34 +399,6 @@ func PhoneCode(c *gin.Context) {
 	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
 }
 
-func GetPhoneSecureCode(c *gin.Context) {
-	value := rand.Intn(100000)
-	phone := c.Query("phone")
-	v := strconv.Itoa(value * 10)
-	if err := redisUtil.SetEx(cache.PhoneSecureKey+cache.Separator+phone, v, cache.PhoneCodeTime); err != nil {
-		logs.Error(err.Error())
-		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
-		return
-	}
-	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
-}
-
-func CheckPhoneCode(c *gin.Context) {
-	var err error
-	var body *SecureArgs
-	web.BindJSON(c, &body)
-	var value = ""
-	if value, err = redisUtil.Get(cache.PhoneSecureKey + cache.Separator + body.Phone); err != nil {
-		c.JSON(500, resp.Error(err, resp.Msg("验证码失效")))
-		return
-	}
-	if value != body.Code {
-		c.JSON(500, resp.Error(err, resp.Msg("验证码错误")))
-		return
-	}
-	c.JSON(200, resp.Success(nil, resp.Msg("验证码正确")))
-}
-
 func UpdateUserPassword(c *gin.Context) {
 	var err error
 	var body *SecureArgs
@@ -450,12 +422,51 @@ func UpdateUserPassword(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }
 
+func GetPhoneSecureCode(c *gin.Context) {
+	value := rand.Intn(100000)
+	token := c.MustGet(auth.Key).(*auth.Token)
+	v := strconv.Itoa(value * 10)
+	if err := redisUtil.SetEx(cache.PhoneSecureKey+cache.Separator+token.Id, v, cache.PhoneCodeTime); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
+		return
+	}
+	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
+}
+
+func CheckPhoneCode(c *gin.Context) {
+	var err error
+	var body *SecureArgs
+	web.BindJSON(c, &body)
+	token := c.MustGet(auth.Key).(*auth.Token)
+	var value = ""
+	if value, err = redisUtil.Get(cache.PhoneSecureKey + cache.Separator + token.Id); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("验证码失效")))
+		return
+	}
+	if value != body.Code {
+		c.JSON(500, resp.Error(err, resp.Msg("验证码错误")))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("验证码正确")))
+}
+
 func UpdateUserPhone(c *gin.Context) {
 	var err error
 	var body *SecureArgs
 	web.BindJSON(c, &body)
 	token := c.MustGet(auth.Key).(*auth.Token)
 	var check bool
+	var value = ""
+	// 校验验证码
+	if value, err = redisUtil.Get(cache.PhoneSecureKey + cache.Separator + token.Id); err != nil {
+		c.JSON(500, resp.Error(nil, resp.Msg("验证码失效")))
+		return
+	}
+	if value != body.Code {
+		c.JSON(500, resp.Error(nil, resp.Msg("验证码错误")))
+		return
+	}
 	params := map[string]any{"Id": token.Id, "Phone": body.Phone}
 	if check, err = AccountMapper.CheckUserPhone(params); err != nil {
 		logs.Error(err.Error())
@@ -553,7 +564,7 @@ func CheckEmailVerify(c *gin.Context) {
 	var decodeString []byte
 	if decodeString, err = base64.StdEncoding.DecodeString(body.Params); err != nil {
 		logs.Error(err.Error())
-		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
 	// 解码用户绑定验证参数
@@ -565,19 +576,19 @@ func CheckEmailVerify(c *gin.Context) {
 	var buf []byte
 	if buf, err = base64.StdEncoding.DecodeString(query.Get("verify")); err != nil {
 		logs.Error(err.Error())
-		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
 	verify := string(buf)
 	if buf, err = base64.StdEncoding.DecodeString(query.Get("userId")); err != nil {
 		logs.Error(err.Error())
-		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
 	userId := string(buf)
 	if buf, err = base64.StdEncoding.DecodeString(query.Get("email")); err != nil {
 		logs.Error(err.Error())
-		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
 	email := string(buf)
@@ -585,12 +596,12 @@ func CheckEmailVerify(c *gin.Context) {
 	get := ""
 	if get, err = redisUtil.Get(cache.EmailVerifyKey + cache.Separator + userId); err != nil {
 		logs.Error(err.Error())
-		c.JSON(500, resp.Error(nil, resp.Msg("验证过期,请重新绑定"), resp.Code(501)))
+		c.JSON(500, resp.Error(nil, resp.Msg("验证过期,请重新绑定"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
 	if get != verify {
 		logs.Error("验证码不匹配")
-		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
 	// 二次验证邮箱是否被其他用户绑定
@@ -598,16 +609,16 @@ func CheckEmailVerify(c *gin.Context) {
 	params := map[string]any{"Id": userId, "Email": email}
 	if check, err = AccountMapper.CheckUserEmail(params); err != nil {
 		logs.Error(err.Error())
-		c.JSON(500, resp.Error(nil, resp.Msg("绑定失败"), resp.Code(501)))
+		c.JSON(500, resp.Error(nil, resp.Msg("绑定失败"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
 	if check {
-		c.JSON(500, resp.Error(err, resp.Msg("邮箱已被绑定"), resp.Code(501)))
+		c.JSON(500, resp.Error(err, resp.Msg("邮箱已被绑定"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
 	if err = AccountMapper.UpdateUserEmail(params); err != nil {
 		logs.Error(err.Error())
-		c.JSON(500, resp.Error(nil, resp.Msg("绑定失败"), resp.Code(501)))
+		c.JSON(500, resp.Error(nil, resp.Msg("绑定失败"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
 	c.JSON(200, resp.Success(nil, resp.Msg("绑定成功")))
