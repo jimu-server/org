@@ -26,10 +26,11 @@ func init() {
 	web.Engine.GET("/menu", control.AllMenu)
 
 	api := web.Engine.Group("/public")
-	api.POST("/register", control.Register)   // 用户注册接口
-	api.POST("/login", control.Login)         // 密码登录
-	api.POST("/phone", control.PhoneLogin)    // 手机登录
-	api.GET("/login_code", control.PhoneCode) // 手机号获取登录验证码
+	api.POST("/register", control.Register)                     // 用户注册接口
+	api.POST("/login", control.Login)                           // 密码登录
+	api.POST("/phone", control.PhoneLogin)                      // 手机登录
+	api.GET("/login_code", control.PhoneCode)                   // 手机号获取登录验证码
+	api.POST("/secure/email/:verify", control.CheckEmailVerify) // 验证用户邮箱更新
 
 	api = web.Engine.Group("/api", auth.Authorization())
 
@@ -88,5 +89,5 @@ func init() {
 	api.POST("/user/secure/update/phone/code/check", control.CheckPhoneCode) // 更新用户手机号,验证码校验
 	api.POST("/user/secure/update/phone", control.UpdateUserPhone)           // 更新用户手机
 	api.POST("/user/secure/update/email", control.UpdateUserEmail)           // 更新用户邮箱
-
+	api.POST("/user/secure/check/password", control.CheckPassword)           // 验证用户密码
 }

@@ -3,6 +3,7 @@ package control
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,7 @@ import (
 	"github.com/jimu-server/redis/cache"
 	"github.com/jimu-server/redis/redisUtil"
 	"github.com/jimu-server/util/accountutil"
+	"github.com/jimu-server/util/email163"
 	"github.com/jimu-server/util/pageutils"
 	"github.com/jimu-server/util/uuidutils/uuid"
 	"github.com/jimu-server/web"
@@ -25,6 +27,7 @@ import (
 	"math/rand"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -477,23 +480,135 @@ func UpdateUserEmail(c *gin.Context) {
 	web.BindJSON(c, &body)
 	token := c.MustGet(auth.Key).(*auth.Token)
 	var check bool
-	params := map[string]any{"Id": token.Id, "Phone": body.Phone}
-	if check, err = AccountMapper.CheckUserPhone(params); err != nil {
+	params := map[string]any{"Id": token.Id, "Email": body.Email}
+	if check, err = AccountMapper.CheckUserEmail(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
 	}
 	if check {
-		c.JSON(500, resp.Error(err, resp.Msg("手机号已存在")))
+		c.JSON(500, resp.Error(err, resp.Msg("邮箱已被绑定")))
 		return
 	}
 
+	// 生成随机验证码
+	value := rand.Intn(100000)
+	v := strconv.Itoa(value * 10)
+	verify := base64.StdEncoding.EncodeToString([]byte(v))
+	userId := base64.StdEncoding.EncodeToString([]byte(token.Id))
+	email := base64.StdEncoding.EncodeToString([]byte(body.Email))
+	urlStr := url.URL{
+		Scheme: "http",
+		User:   nil,
+		Host:   "localhost:5173/#/verify",
+	}
+	values := url.Values{
+		"verify": []string{verify},
+		"userId": []string{userId},
+		"email":  []string{email},
+	}
+	urlStr.Path = "/" + base64.StdEncoding.EncodeToString([]byte(values.Encode()))
 	// 发送激活链接
-
-	/*if err = AccountMapper.UpdateUserPhone(params); err != nil {
+	sprintf := fmt.Sprintf("<a href=\"%s\" target=\"_blank\">%s</a>", urlStr.String(), urlStr.String())
+	logs.Info(sprintf)
+	sprintf = strings.ReplaceAll(sprintf, "%2F%23%2F", "/#/")
+	logs.Info(sprintf)
+	if err = email163.SendHtml("邮箱绑定验证!", sprintf, body.Email); err != nil {
 		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
+		return
+	}
+
+	if err = redisUtil.SetEx(cache.EmailVerifyKey+cache.Separator+token.Id, v, cache.EmailVerifyCodeTime); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
+		return
+	}
+
+	c.JSON(200, resp.Success(nil, resp.Msg("发送成功")))
+}
+
+func CheckPassword(c *gin.Context) {
+	var err error
+	var body *PasswordVerify
+	web.BindJSON(c, &body)
+	token := c.MustGet(auth.Key).(*auth.Token)
+	var user model.User
+	if user, err = AccountMapper.SelectUserById(map[string]any{"Id": token.Id}); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
-	}*/
-	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
+	}
+	hash := accountutil.Password(body.Password)
+	if user.Password != hash {
+		c.JSON(500, resp.Error(err, resp.Msg("密码错误")))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("密码正确")))
+}
+
+func CheckEmailVerify(c *gin.Context) {
+	var err error
+	var body EmailVerify
+	web.ShouldBindUri(c, &body)
+	var decodeString []byte
+	if decodeString, err = base64.StdEncoding.DecodeString(body.Params); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		return
+	}
+	// 解码用户绑定验证参数
+	query := url.Values{}
+	if query, err = url.ParseQuery(string(decodeString)); err != nil {
+		return
+	}
+	// 反编码参数
+	var buf []byte
+	if buf, err = base64.StdEncoding.DecodeString(query.Get("verify")); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		return
+	}
+	verify := string(buf)
+	if buf, err = base64.StdEncoding.DecodeString(query.Get("userId")); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		return
+	}
+	userId := string(buf)
+	if buf, err = base64.StdEncoding.DecodeString(query.Get("email")); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		return
+	}
+	email := string(buf)
+	// 验证绑定邮箱的有效时间
+	get := ""
+	if get, err = redisUtil.Get(cache.EmailVerifyKey + cache.Separator + userId); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(nil, resp.Msg("验证过期,请重新绑定"), resp.Code(501)))
+		return
+	}
+	if get != verify {
+		logs.Error("验证码不匹配")
+		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(501)))
+		return
+	}
+	// 二次验证邮箱是否被其他用户绑定
+	var check bool
+	params := map[string]any{"Id": userId, "Email": email}
+	if check, err = AccountMapper.CheckUserEmail(params); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(nil, resp.Msg("绑定失败"), resp.Code(501)))
+		return
+	}
+	if check {
+		c.JSON(500, resp.Error(err, resp.Msg("邮箱已被绑定"), resp.Code(501)))
+		return
+	}
+	if err = AccountMapper.UpdateUserEmail(params); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(nil, resp.Msg("绑定失败"), resp.Code(501)))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("绑定成功")))
 }

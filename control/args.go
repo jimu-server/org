@@ -140,3 +140,11 @@ type SecureArgs struct {
 	Phone       string `form:"phone" json:"phone" `
 	Email       string `form:"email" json:"email" `
 }
+
+type EmailVerify struct {
+	Params string `uri:"verify" binding:"required"`
+}
+
+type PasswordVerify struct {
+	Password string `form:"password" json:"password"`
+}
