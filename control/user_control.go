@@ -463,6 +463,8 @@ func UpdateUserPhone(c *gin.Context) {
 		c.JSON(500, resp.Error(nil, resp.Msg("验证码失效")))
 		return
 	}
+	// 使用完成之后删除验证码
+	defer redisUtil.Del(cache.PhoneSecureKey + cache.Separator + token.Id)
 	if value != body.Code {
 		c.JSON(500, resp.Error(nil, resp.Msg("验证码错误")))
 		return
@@ -599,6 +601,7 @@ func CheckEmailVerify(c *gin.Context) {
 		c.JSON(500, resp.Error(nil, resp.Msg("验证过期,请重新绑定"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
+	defer redisUtil.Del(cache.EmailVerifyKey + cache.Separator + userId)
 	if get != verify {
 		logs.Error("验证码不匹配")
 		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(resp.EmailVerifyErr)))
