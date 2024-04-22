@@ -136,6 +136,12 @@
         </for>
     </insert>
 
+    <insert id="RegisterAddOrgUserRoleAuth">
+        insert into app_org_user_role(id, org_id, user_id, role_id, first_choice)
+        values ({Id}, {OrgId}, {UserId}, {RoleId}, {FirstChoice})
+    </insert>
+
+
     <delete id="DeleteOrgUserRoleAuth">
         delete
         from app_org_user_role
