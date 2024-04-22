@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"database/sql"
 	"github.com/jimu-server/model"
 )
 
@@ -16,6 +17,9 @@ type OrgMapper struct {
 	CreateOrg func(any) error
 	// 删除组织
 	DeleteOrg func(any) error
+
+	// 组织添加用户
+	OrgAddUser func(any, *sql.Tx) error
 
 	// 查询组织是否有子组织
 	IsParentOrg func(any) ([]string, error)

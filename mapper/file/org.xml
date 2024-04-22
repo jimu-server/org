@@ -28,6 +28,12 @@
     <insert id="CreateOrg">
         insert into app_org (id,pid, name) values ({Id},{Pid}, {Name})
     </insert>
+
+    <insert id="OrgAddUser">
+        insert into app_org_user(id, org_id, user_id,first_choice)
+        VALUES ({Id}, {OrgId}, {UserId},{FirstChoice})
+    </insert>
+
     <!--删除指定组织-->
     <delete id="DeleteOrg">
         delete

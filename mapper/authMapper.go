@@ -28,8 +28,9 @@ type AuthMapper struct {
 	SelectUserOrgRoleList func(any) ([]*model.Role, error)
 
 	// 对组织的用户户进行角色授权
-	AddOrgUserRoleAuth    func(any, *sql.Tx) error
-	DeleteOrgUserRoleAuth func(any, *sql.Tx) error
+	AddOrgUserRoleAuth         func(any, *sql.Tx) error
+	RegisterAddOrgUserRoleAuth func(any, *sql.Tx) error
+	DeleteOrgUserRoleAuth      func(any, *sql.Tx) error
 
 	// 查询组织对应角色的工具栏授权
 	SelectOrgRoleToolAuth func(any) ([]string, error)

@@ -71,14 +71,41 @@ func Register(c *gin.Context) {
 		return
 	}
 	if err = AccountMapper.Register(account, begin); err != nil {
+		logs.Error(err.Error())
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
 	}
-	begin.Commit()
+	// todo 给用户分配默认组织和默认角色 第一次注册统一存放到根组织下,分配普通角色
+	// 1.分配组织
+	param := map[string]interface{}{
+		"Id":          uuid.String(),
+		"UserId":      account.Id,
+		"OrgId":       "1",
+		"FirstChoice": true,
+	}
+	if err = OrgMapper.OrgAddUser(param, begin); err != nil {
+		begin.Rollback()
+		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
+		return
+	}
+	role := model.AuthUserRole{
+		Id:          uuid.String(),
+		UserId:      account.Id,
+		RoleId:      "3",
+		OrgId:       "1",
+		FirstChoice: true,
+	}
+	if err = AuthMapper.RegisterAddOrgUserRoleAuth(role, begin); err != nil {
+		begin.Rollback()
+		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
+		return
+	}
+	// todo 创建用户消息队列
 	key := fmt.Sprintf("%s%s", mq_key.Notify, account.Id)
 	// 每个用户创建一个任务队列 用于通知消息
 	rabbmq.CreateUserNotifyQueue(key)
+	begin.Commit()
 	c.JSON(200, resp.Success(account, resp.Msg("注册成功")))
 }
 
@@ -121,7 +148,7 @@ func Login(c *gin.Context) {
 	data := &model.AppNotify{
 		Id:         uuid.String(),
 		PubId:      "system",
-		SubId:      "1",
+		SubId:      account.Id,
 		Title:      "登录通知",
 		MsgType:    1,
 		Text:       "成功登录",
@@ -376,7 +403,7 @@ func PhoneLogin(c *gin.Context) {
 	var body *PhoneLoginArgs
 	web.BindJSON(c, &body)
 	var value = ""
-	if value, err = redisUtil.Get(cache.PhoneLoginKey + cache.Separator + body.Phone); err != nil {
+	if value, err = redisUtil.Get(cache.PhoneLoginKey + body.Phone); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("验证码失效")))
 		return
 	}
@@ -391,12 +418,81 @@ func PhoneCode(c *gin.Context) {
 	value := rand.Intn(100000)
 	phone := c.Query("phone")
 	v := strconv.Itoa(value * 10)
-	if err := redisUtil.SetEx(cache.PhoneLoginKey+cache.Separator+phone, v, cache.PhoneCodeTime); err != nil {
+	if err := redisUtil.SetEx(cache.PhoneLoginKey+phone, v, cache.PhoneCodeTime); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
 		return
 	}
 	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
+}
+
+func ForgetCode(c *gin.Context) {
+	var args *ForGetArgs
+	web.ShouldJSON(c, &args)
+	value := rand.Intn(100000)
+	key := ""
+	if key = args.Phone; key == "" {
+		key = args.Email
+	}
+	if key == "" {
+		c.JSON(500, resp.Error(nil, resp.Msg("发送失败")))
+		return
+	}
+	v := strconv.Itoa(value * 10)
+	if err := redisUtil.SetEx(cache.ForGetKey+key, v, cache.PhoneCodeTime); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
+		return
+	}
+	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
+}
+
+func ForgetCodeCheck(c *gin.Context) {
+	var err error
+	var args *ForGetArgs
+	web.ShouldJSON(c, &args)
+	key := ""
+	if key = args.Phone; key == "" {
+		key = args.Email
+	}
+	if key == "" {
+		c.JSON(500, resp.Error(nil, resp.Msg("验证失败")))
+		return
+	}
+	var value = ""
+	if value, err = redisUtil.Get(cache.ForGetKey + key); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("验证码失效")))
+		return
+	}
+	if value != args.Code {
+		c.JSON(500, resp.Error(err, resp.Msg("验证码错误")))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("验证成功")))
+}
+
+func ResetPassword(c *gin.Context) {
+	var err error
+	var args *ForGetArgs
+	web.ShouldJSON(c, &args)
+	newPassword := accountutil.Password(args.Password)
+	params := make(map[string]any)
+	params["Password"] = newPassword
+	if args.Phone != "" {
+		params["Phone"] = args.Phone
+		if err = AccountMapper.RestUserPasswordByPhone(params); err != nil {
+			c.JSON(500, resp.Error(err, resp.Msg("重置失败")))
+			return
+		}
+	}
+	if args.Email != "" {
+		params["Email"] = args.Email
+		if err = AccountMapper.RestUserPasswordByEmail(params); err != nil {
+			c.JSON(500, resp.Error(err, resp.Msg("重置失败")))
+			return
+		}
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("重置成功")))
 }
 
 func UpdateUserPassword(c *gin.Context) {
@@ -426,7 +522,7 @@ func GetPhoneSecureCode(c *gin.Context) {
 	value := rand.Intn(100000)
 	token := c.MustGet(auth.Key).(*auth.Token)
 	v := strconv.Itoa(value * 10)
-	if err := redisUtil.SetEx(cache.PhoneSecureKey+cache.Separator+token.Id, v, cache.PhoneCodeTime); err != nil {
+	if err := redisUtil.SetEx(cache.PhoneSecureKey+token.Id, v, cache.PhoneCodeTime); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
 		return
@@ -440,7 +536,7 @@ func CheckPhoneCode(c *gin.Context) {
 	web.BindJSON(c, &body)
 	token := c.MustGet(auth.Key).(*auth.Token)
 	var value = ""
-	if value, err = redisUtil.Get(cache.PhoneSecureKey + cache.Separator + token.Id); err != nil {
+	if value, err = redisUtil.Get(cache.PhoneSecureKey + token.Id); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("验证码失效")))
 		return
 	}
@@ -459,12 +555,18 @@ func UpdateUserPhone(c *gin.Context) {
 	var check bool
 	var value = ""
 	// 校验验证码
-	if value, err = redisUtil.Get(cache.PhoneSecureKey + cache.Separator + token.Id); err != nil {
+	if value, err = redisUtil.Get(cache.PhoneSecureKey + token.Id); err != nil {
 		c.JSON(500, resp.Error(nil, resp.Msg("验证码失效")))
 		return
 	}
 	// 使用完成之后删除验证码
-	defer redisUtil.Del(cache.PhoneSecureKey + cache.Separator + token.Id)
+	defer func(key string) {
+		err := redisUtil.Del(key)
+		if err != nil {
+			logs.Error(err.Error())
+		}
+	}(cache.PhoneSecureKey + token.Id)
+
 	if value != body.Code {
 		c.JSON(500, resp.Error(nil, resp.Msg("验证码错误")))
 		return
@@ -532,7 +634,7 @@ func UpdateUserEmail(c *gin.Context) {
 		return
 	}
 
-	if err = redisUtil.SetEx(cache.EmailVerifyKey+cache.Separator+token.Id, v, cache.EmailVerifyCodeTime); err != nil {
+	if err = redisUtil.SetEx(cache.EmailVerifyKey+token.Id, v, cache.EmailVerifyCodeTime); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("发送失败")))
 		return
@@ -596,12 +698,12 @@ func CheckEmailVerify(c *gin.Context) {
 	email := string(buf)
 	// 验证绑定邮箱的有效时间
 	get := ""
-	if get, err = redisUtil.Get(cache.EmailVerifyKey + cache.Separator + userId); err != nil {
+	if get, err = redisUtil.Get(cache.EmailVerifyKey + userId); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(nil, resp.Msg("验证过期,请重新绑定"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
-	defer redisUtil.Del(cache.EmailVerifyKey + cache.Separator + userId)
+	defer redisUtil.Del(cache.EmailVerifyKey + userId)
 	if get != verify {
 		logs.Error("验证码不匹配")
 		c.JSON(500, resp.Error(err, resp.Msg("验证失败"), resp.Code(resp.EmailVerifyErr)))

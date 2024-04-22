@@ -148,3 +148,10 @@ type EmailVerify struct {
 type PasswordVerify struct {
 	Password string `form:"password" json:"password"`
 }
+
+type ForGetArgs struct {
+	Phone    string `form:"phone" json:"phone"`
+	Code     string `form:"code" json:"code"`
+	Email    string `form:"email" json:"email"`
+	Password string `form:"password" json:"password"`
+}

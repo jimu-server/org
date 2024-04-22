@@ -3,8 +3,8 @@
 
     <!-- 注册新用户 -->
     <insert id="Register">
-        insert into app_user (id, name, picture, account, password, created)
-        values ({Id}, {Name}, {Picture}, {Account}, {Password}, {Created})
+        insert into app_user (id, name, picture, account, password)
+        values ({Id}, {Name}, {Picture}, {Account}, {Password})
     </insert>
 
     <!-- 检查用户是否注册 -->
@@ -76,6 +76,18 @@
         update app_user
         set password={Password}
         where id = {Id}
+    </update>
+
+    <update id="RestUserPasswordByPhone">
+        update app_user
+        set password={Password}
+        where phone = {Phone}
+    </update>
+
+    <update id="RestUserPasswordByEmail">
+        update app_user
+        set password={Password}
+        where email = {Email}
     </update>
 
     <update id="UpdateUserPhone">

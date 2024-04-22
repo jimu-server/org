@@ -32,6 +32,10 @@ func init() {
 	api.GET("/login_code", control.PhoneCode)                   // 手机号获取登录验证码
 	api.POST("/secure/email/:verify", control.CheckEmailVerify) // 验证用户邮箱更新
 
+	api.GET("/forget/code", control.ForgetCode)             // (手机号/邮箱号)重置密码获取验证码
+	api.POST("/forget/code/check", control.ForgetCodeCheck) // (手机号/邮箱号)重置密码获取验证码验证
+	api.POST("/forget/reset", control.ResetPassword)        // (手机号/邮箱号)重置密码
+
 	api = web.Engine.Group("/api", auth.Authorization())
 
 	api.GET("/dictionary", control.Dictionary)
