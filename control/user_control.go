@@ -18,11 +18,14 @@ import (
 	"github.com/jimu-server/oss"
 	"github.com/jimu-server/redis/cache"
 	"github.com/jimu-server/redis/redisUtil"
+	"github.com/jimu-server/setting"
 	"github.com/jimu-server/util/accountutil"
 	"github.com/jimu-server/util/email163"
 	"github.com/jimu-server/util/pageutils"
+	"github.com/jimu-server/util/treeutils/tree"
 	"github.com/jimu-server/util/uuidutils/uuid"
 	"github.com/jimu-server/web"
+	jsoniter "github.com/json-iterator/go"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"math/rand"
 	"mime/multipart"
@@ -727,4 +730,43 @@ func CheckEmailVerify(c *gin.Context) {
 		return
 	}
 	c.JSON(200, resp.Success(nil, resp.Msg("绑定成功")))
+}
+
+func GetSettings(c *gin.Context) {
+	var err error
+	var reqParams *SettingsArgs
+	web.BindJSON(c, &reqParams)
+
+	token := c.MustGet(auth.Key).(*auth.Token)
+
+	key := fmt.Sprintf("%s:%s", setting.OLLAMA_SETTING, token.Id)
+
+	var app_set string
+	if app_set, err = redisUtil.Get(key); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("获取失败")))
+		return
+	}
+	var data any
+	if app_set != "" {
+		jsoniter.Unmarshal([]byte(app_set), &data)
+	}
+
+	param := map[string]any{
+		"list": reqParams.Tools,
+	}
+	var settings []string
+	if settings, err = AccountMapper.GetSettingIds(param); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("获取失败")))
+		return
+	}
+	// 添加用户设置项
+	settings = append(settings, "1")
+	param["list"] = settings
+	var set []*model.AppSetting
+	if set, err = AccountMapper.SettingsList(param); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("获取失败")))
+		return
+	}
+	buildTree := tree.BuildTree("", set)
+	c.JSON(200, resp.Success(buildTree, resp.Msg("获取成功")))
 }

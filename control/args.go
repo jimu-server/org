@@ -155,3 +155,7 @@ type ForGetArgs struct {
 	Email    string `form:"email" json:"email"`
 	Password string `form:"password" json:"password"`
 }
+
+type SettingsArgs struct {
+	Tools []string `form:"tools" json:"tools"`
+}

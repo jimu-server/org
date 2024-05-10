@@ -27,4 +27,7 @@ type AccountMapper struct {
 
 	CheckUserPhone func(any) (bool, error)
 	CheckUserEmail func(any) (bool, error)
+
+	SettingsList  func(any) ([]*model.AppSetting, error)
+	GetSettingIds func(any) ([]string, error)
 }

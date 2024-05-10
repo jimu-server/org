@@ -110,5 +110,18 @@
         select exists(select id from app_user where email = {Email})
     </select>
 
+    <select id="GetSettingIds">
+        select setting_id from app_tool where id in
+        <for slice="{list}" item="id" open="("  separator="," close=")">
+            {id}
+        </for>
+    </select>
+
+    <select id="SettingsList">
+        select * from app_setting where id in
+       <for slice="{list}" item="id" open="("  separator="," close=")">
+        {id}
+    </for>
+    </select>
 
 </mapper>
