@@ -95,4 +95,5 @@ func init() {
 	api.POST("/user/secure/update/email", control.UpdateUserEmail)           // 更新用户邮箱
 	api.POST("/user/secure/check/password", control.CheckPassword)           // 验证用户密码
 	api.POST("/settings", control.GetSettings)                               // 获取用户设置
+	api.POST("/settings/update", control.UpdateSettings)                     // 获取用户设置
 }

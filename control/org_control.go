@@ -378,6 +378,7 @@ func OrgUserRoleToolAuth(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("开启事务失败")))
 		return
 	}
+	// 检查是否有需要授权的工具
 	if len(args.Auths) != 0 {
 		var list []model.AuthTool
 		for ids := range args.Auths {
@@ -392,7 +393,7 @@ func OrgUserRoleToolAuth(c *gin.Context) {
 			return
 		}
 	}
-
+	// 检查是否有需要取消授权的工具
 	if len(args.UnAuth) != 0 {
 		params := map[string]any{
 			"OrgId":  args.OrgId,

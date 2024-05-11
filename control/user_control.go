@@ -18,14 +18,11 @@ import (
 	"github.com/jimu-server/oss"
 	"github.com/jimu-server/redis/cache"
 	"github.com/jimu-server/redis/redisUtil"
-	"github.com/jimu-server/setting"
 	"github.com/jimu-server/util/accountutil"
 	"github.com/jimu-server/util/email163"
 	"github.com/jimu-server/util/pageutils"
-	"github.com/jimu-server/util/treeutils/tree"
 	"github.com/jimu-server/util/uuidutils/uuid"
 	"github.com/jimu-server/web"
-	jsoniter "github.com/json-iterator/go"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"math/rand"
 	"mime/multipart"
@@ -79,12 +76,12 @@ func Register(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
 	}
-	// todo 给用户分配默认组织和默认角色 第一次注册统一存放到根组织下,分配普通角色
-	// 1.分配组织
+	// todo 给用户分配默认组织和默认角色 第一次注册统一存放到根组织下,分配 普通用户 角色
+	// 1.分配组织 并设置当前组织为首选项组织
 	param := map[string]interface{}{
 		"Id":          uuid.String(),
 		"UserId":      account.Id,
-		"OrgId":       "1",
+		"OrgId":       ROOT_ORG_ID,
 		"FirstChoice": true,
 	}
 	if err = OrgMapper.OrgAddUser(param, begin); err != nil {
@@ -92,14 +89,21 @@ func Register(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
 	}
+	// 2.分配角色 并设置当前角色为 当前组织的首选项角色
 	role := model.AuthUserRole{
 		Id:          uuid.String(),
 		UserId:      account.Id,
-		RoleId:      "3",
-		OrgId:       "1",
+		RoleId:      ROOT_ORG_DEFAULT_ROLE,
+		OrgId:       ROOT_ORG_ID,
 		FirstChoice: true,
 	}
 	if err = AuthMapper.RegisterAddOrgUserRoleAuth(role, begin); err != nil {
+		begin.Rollback()
+		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
+		return
+	}
+	// todo 默认注册用户定制化配置(默认授权一部分工具或者路由)
+	if err = InitRegisterUser(account, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
@@ -732,41 +736,20 @@ func CheckEmailVerify(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("绑定成功")))
 }
 
-func GetSettings(c *gin.Context) {
+// InitRegisterUser
+// 初始化注册用户 所有的初始化操作都基于默认root组织下的普通角色
+func InitRegisterUser(user model.User, begin *sql.Tx) error {
 	var err error
-	var reqParams *SettingsArgs
-	web.BindJSON(c, &reqParams)
-
-	token := c.MustGet(auth.Key).(*auth.Token)
-
-	key := fmt.Sprintf("%s:%s", setting.OLLAMA_SETTING, token.Id)
-
-	var app_set string
-	if app_set, err = redisUtil.Get(key); err != nil {
-		c.JSON(500, resp.Error(err, resp.Msg("获取失败")))
-		return
+	// 1. 分配 GPT 插件工具
+	list := []model.AuthTool{
+		{Id: uuid.String(), UserId: user.Id, OrgId: ROOT_ORG_ID, ToolId: GPT_TOOL_ID, RoleId: ROOT_ORG_DEFAULT_ROLE},
 	}
-	var data any
-	if app_set != "" {
-		jsoniter.Unmarshal([]byte(app_set), &data)
+	params := map[string]any{
+		"list": list,
 	}
-
-	param := map[string]any{
-		"list": reqParams.Tools,
+	if err = AuthMapper.AddOrgUserRoleToolAuth(params, begin); err != nil {
+		return err
 	}
-	var settings []string
-	if settings, err = AccountMapper.GetSettingIds(param); err != nil {
-		c.JSON(500, resp.Error(err, resp.Msg("获取失败")))
-		return
-	}
-	// 添加用户设置项
-	settings = append(settings, "1")
-	param["list"] = settings
-	var set []*model.AppSetting
-	if set, err = AccountMapper.SettingsList(param); err != nil {
-		c.JSON(500, resp.Error(err, resp.Msg("获取失败")))
-		return
-	}
-	buildTree := tree.BuildTree("", set)
-	c.JSON(200, resp.Success(buildTree, resp.Msg("获取成功")))
+	// 2. 分配 GPT 插件工具 的配置项
+	return nil
 }

@@ -157,5 +157,7 @@ type ForGetArgs struct {
 }
 
 type SettingsArgs struct {
-	Tools []string `form:"tools" json:"tools"`
+	Tools     []string `form:"tools" json:"tools"`
+	SettingId string   `form:"settingId" json:"settingId"`
+	Value     string   `form:"value" json:"value"`
 }
