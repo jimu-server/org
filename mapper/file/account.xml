@@ -134,5 +134,12 @@
         where id = {Id}
           and user_id = {UserId}
     </update>
+    <insert id="AddSetting">
+        insert into app_setting(id, pid, user_id, name, value, tool_id)
+        VALUES
+        <for slice="{list}" item="obj" separator=",">
+            ({obj.Id},{obj.Pid},{obj.UserId},{obj.Name},{obj.Value},{obj.ToolId})
+        </for>
+    </insert>
 
 </mapper>

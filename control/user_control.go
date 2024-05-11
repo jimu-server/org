@@ -18,6 +18,7 @@ import (
 	"github.com/jimu-server/oss"
 	"github.com/jimu-server/redis/cache"
 	"github.com/jimu-server/redis/redisUtil"
+	"github.com/jimu-server/setting"
 	"github.com/jimu-server/util/accountutil"
 	"github.com/jimu-server/util/email163"
 	"github.com/jimu-server/util/pageutils"
@@ -750,6 +751,20 @@ func InitRegisterUser(user model.User, begin *sql.Tx) error {
 	if err = AuthMapper.AddOrgUserRoleToolAuth(params, begin); err != nil {
 		return err
 	}
-	// 2. 分配 GPT 插件工具 的配置项
+	// 2. 初始化用户所有的插件配置项
+	var templates []model.AppSetting
+	if templates, err = setting.GetSettingTemplate(); err != nil {
+		return err
+	}
+	for i := range templates {
+		templates[i].Id = uuid.String()
+		templates[i].UserId = user.Id
+	}
+	params = map[string]any{
+		"list": templates,
+	}
+	if err = AccountMapper.AddSetting(params, begin); err != nil {
+		return err
+	}
 	return nil
 }
