@@ -115,10 +115,6 @@
         select *
         from app_setting
         where user_id = {UserId}
-          and tool_id in
-        <for slice="{list}" item="id" open="(" separator="," close=")">
-            {id}
-        </for>
     </select>
 
     <!--  用户设置 默认 id=1 系统用户公用  -->
