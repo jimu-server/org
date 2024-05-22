@@ -768,3 +768,7 @@ func InitRegisterUser(user model.User, begin *sql.Tx) error {
 	}
 	return nil
 }
+
+func GetUid(c *gin.Context) {
+	c.JSON(200, resp.Success(uuid.String(), resp.Msg("获取成功")))
+}
