@@ -5,6 +5,7 @@ import (
 	"github.com/jimu-server/common/resp"
 	"github.com/jimu-server/middleware/auth"
 	"github.com/jimu-server/model"
+	"github.com/jimu-server/org/dao"
 
 	"net/http"
 )
@@ -17,12 +18,12 @@ func GetUserDefaultInfo(c *gin.Context) {
 	params := map[string]any{
 		"UserId": token.Id,
 	}
-	if org, err = DefaultInfoMapper.SelectUserDefaultOrg(params); err != nil {
+	if org, err = dao.DefaultInfoMapper.SelectUserDefaultOrg(params); err != nil {
 		c.JSON(http.StatusInternalServerError, resp.Error(err, resp.Msg("获取默认组织失败")))
 		return
 	}
 	params["OrgId"] = org.Id
-	if role, err = DefaultInfoMapper.SelectUserDefaultRole(params); err != nil {
+	if role, err = dao.DefaultInfoMapper.SelectUserDefaultRole(params); err != nil {
 		c.JSON(http.StatusInternalServerError, resp.Error(err, resp.Msg("获取默认组织角色失败")))
 		return
 	}
@@ -41,7 +42,7 @@ func GetOrgDefaultRole(c *gin.Context) {
 		"UserId": token.Id,
 		"OrgId":  orgId,
 	}
-	if role, err = DefaultInfoMapper.SelectUserDefaultRole(params); err != nil {
+	if role, err = dao.DefaultInfoMapper.SelectUserDefaultRole(params); err != nil {
 		c.JSON(http.StatusInternalServerError, resp.Error(err, resp.Msg("获取默认组织角色失败")))
 		return
 	}
@@ -55,7 +56,7 @@ func UserInfo(c *gin.Context) {
 	params := map[string]any{
 		"UserId": token.Id,
 	}
-	if user, err = DefaultInfoMapper.SelectUserInfo(params); err != nil {
+	if user, err = dao.DefaultInfoMapper.SelectUserInfo(params); err != nil {
 		c.JSON(http.StatusInternalServerError, resp.Error(err, resp.Msg("获取用户信息失败")))
 		return
 	}

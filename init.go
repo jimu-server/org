@@ -5,6 +5,7 @@ import (
 	"github.com/jimu-server/db"
 	"github.com/jimu-server/middleware/auth"
 	"github.com/jimu-server/org/control"
+	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/web"
 )
 
@@ -13,18 +14,17 @@ var mapperFile embed.FS
 
 func init() {
 	db.GoBatis.LoadByRootPath("mapper", mapperFile)
-	db.GoBatis.ScanMappers(control.AccountMapper)
-	db.GoBatis.ScanMappers(control.ToolMapper)
-	db.GoBatis.ScanMappers(control.OrgMapper)
-	db.GoBatis.ScanMappers(control.RoleMapper)
-	db.GoBatis.ScanMappers(control.FunMapper)
-	db.GoBatis.ScanMappers(control.AuthMapper)
-	db.GoBatis.ScanMappers(control.DefaultInfoMapper)
-	db.GoBatis.ScanMappers(control.MenuMapper)
-	db.GoBatis.ScanMappers(control.SystemMapper)
+	db.GoBatis.ScanMappers(dao.AccountMapper)
+	db.GoBatis.ScanMappers(dao.ToolMapper)
+	db.GoBatis.ScanMappers(dao.OrgMapper)
+	db.GoBatis.ScanMappers(dao.RoleMapper)
+	db.GoBatis.ScanMappers(dao.FunMapper)
+	db.GoBatis.ScanMappers(dao.AuthMapper)
+	db.GoBatis.ScanMappers(dao.DefaultInfoMapper)
+	db.GoBatis.ScanMappers(dao.MenuMapper)
+	db.GoBatis.ScanMappers(dao.SystemMapper)
 
 	web.Engine.GET("/menu", control.AllMenu)
-
 	api := web.Engine.Group("/public")
 	api.POST("/register", control.Register)                     // 用户注册接口
 	api.POST("/login", control.Login)                           // 密码登录
@@ -37,7 +37,7 @@ func init() {
 	api.POST("/forget/reset", control.ResetPassword)        // (手机号/邮箱号)重置密码
 
 	api = web.Engine.Group("/api", auth.Authorization())
-
+	api.GET("/uuid", control.GetUid) // 生成消息uuid
 	api.GET("/dictionary", control.Dictionary)
 	api.POST("/org/create", control.CreateOrg)                             // 创建组织
 	api.POST("/org/delete", control.DeleteOrg)                             // 删除组织

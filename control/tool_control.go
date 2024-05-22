@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jimu-server/common/resp"
 	"github.com/jimu-server/model"
+	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/util/pageutils"
 	"github.com/jimu-server/util/uuidutils/uuid"
 	"github.com/jimu-server/web"
@@ -15,7 +16,7 @@ func CreateTool(c *gin.Context) {
 	var err error
 	web.BindJSON(c, &args)
 	var flag bool
-	if flag, err = ToolMapper.CheckTool(args); err != nil {
+	if flag, err = dao.ToolMapper.CheckTool(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("创建失败")))
 		return
 	} else if flag {
@@ -23,7 +24,7 @@ func CreateTool(c *gin.Context) {
 		return
 	}
 	args.Id = uuid.String()
-	if err = ToolMapper.CreateTool(args); err != nil {
+	if err = dao.ToolMapper.CreateTool(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("创建失败")))
 		return
 	}
@@ -41,7 +42,7 @@ func DeleteTool(c *gin.Context) {
 
 	// todo 判断当前的 工具的授权情况以后在进行删除
 
-	if err = ToolMapper.DeleteTool(map[string]any{
+	if err = dao.ToolMapper.DeleteTool(map[string]any{
 		"list": args.List,
 	}); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("删除失败")))
@@ -63,7 +64,7 @@ func GetTool(c *gin.Context) {
 	}
 	args.Start, args.End = offset, limit
 	var count int64 = 0
-	if orgs, count, err = ToolMapper.GetTool(args); err != nil {
+	if orgs, count, err = dao.ToolMapper.GetTool(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
@@ -84,7 +85,7 @@ func GetToolRouterList(c *gin.Context) {
 		}
 		args.Start, args.End = offset, limit
 		var count int64 = 0
-		if routers, count, err = ToolMapper.GetToolRouter(args); err != nil {
+		if routers, count, err = dao.ToolMapper.GetToolRouter(args); err != nil {
 			c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 			return
 		}
@@ -92,7 +93,7 @@ func GetToolRouterList(c *gin.Context) {
 		c.JSON(200, resp.Success(page, resp.Msg("查询成功")))
 		return
 	}
-	if routers, err = ToolMapper.GetToolRouterChild(args); err != nil {
+	if routers, err = dao.ToolMapper.GetToolRouterChild(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}

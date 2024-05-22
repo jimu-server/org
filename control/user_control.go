@@ -15,6 +15,7 @@ import (
 	"github.com/jimu-server/model"
 	"github.com/jimu-server/mq/mq_key"
 	"github.com/jimu-server/mq/rabbmq"
+	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/oss"
 	"github.com/jimu-server/redis/cache"
 	"github.com/jimu-server/redis/redisUtil"
@@ -56,7 +57,7 @@ func Register(c *gin.Context) {
 		Password: hash,
 	}
 	// 检查账号是否存在
-	if exists, err = AccountMapper.IsRegister(account); err != nil {
+	if exists, err = dao.AccountMapper.IsRegister(account); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
 	}
@@ -71,7 +72,7 @@ func Register(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
 	}
-	if err = AccountMapper.Register(account, begin); err != nil {
+	if err = dao.AccountMapper.Register(account, begin); err != nil {
 		logs.Error(err.Error())
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
@@ -85,7 +86,7 @@ func Register(c *gin.Context) {
 		"OrgId":       ROOT_ORG_ID,
 		"FirstChoice": true,
 	}
-	if err = OrgMapper.OrgAddUser(param, begin); err != nil {
+	if err = dao.OrgMapper.OrgAddUser(param, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
@@ -98,7 +99,7 @@ func Register(c *gin.Context) {
 		OrgId:       ROOT_ORG_ID,
 		FirstChoice: true,
 	}
-	if err = AuthMapper.RegisterAddOrgUserRoleAuth(role, begin); err != nil {
+	if err = dao.AuthMapper.RegisterAddOrgUserRoleAuth(role, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
@@ -128,7 +129,7 @@ func Login(c *gin.Context) {
 		return
 	}
 	account.Account = body.Account
-	if exists, err = AccountMapper.IsRegister(account); err != nil {
+	if exists, err = dao.AccountMapper.IsRegister(account); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
 	}
@@ -136,7 +137,7 @@ func Login(c *gin.Context) {
 		c.JSON(500, resp.Error(errors.New("密码错误"), resp.Msg("密码错误")))
 		return
 	}
-	if account, err = AccountMapper.SelectAccount(map[string]any{
+	if account, err = dao.AccountMapper.SelectAccount(map[string]any{
 		"Account": body.Account,
 	}); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("登录失败,请联系管理员")))
@@ -233,7 +234,7 @@ func AllUser(c *gin.Context) {
 	}
 	var users []*model.User
 	var count int64
-	if users, count, err = SystemMapper.AllUserList(args); err != nil {
+	if users, count, err = dao.SystemMapper.AllUserList(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
@@ -254,7 +255,7 @@ func UpdateUserInfo(c *gin.Context) {
 	params["Id"] = token.Id
 	if body.Name != nil {
 		params["Name"] = *body.Name
-		if err = AccountMapper.UpdateUserName(params, begin); err != nil {
+		if err = dao.AccountMapper.UpdateUserName(params, begin); err != nil {
 			begin.Rollback()
 			logs.Error(err.Error())
 			c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
@@ -263,7 +264,7 @@ func UpdateUserInfo(c *gin.Context) {
 	}
 	if body.Age != nil {
 		params["Age"] = *body.Age
-		if err = AccountMapper.UpdateUserAge(params, begin); err != nil {
+		if err = dao.AccountMapper.UpdateUserAge(params, begin); err != nil {
 			begin.Rollback()
 			logs.Error(err.Error())
 			c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
@@ -272,7 +273,7 @@ func UpdateUserInfo(c *gin.Context) {
 	}
 	if body.Gender != nil {
 		params["Gender"] = *body.Gender
-		if err = AccountMapper.UpdateUserGender(params, begin); err != nil {
+		if err = dao.AccountMapper.UpdateUserGender(params, begin); err != nil {
 			begin.Rollback()
 			logs.Error(err.Error())
 			c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
@@ -310,7 +311,7 @@ func UpdateAvatar(c *gin.Context) {
 		"Id":      token.Id,
 		"Picture": full,
 	}
-	if err = AccountMapper.UpdateUserAvatar(params); err != nil {
+	if err = dao.AccountMapper.UpdateUserAvatar(params); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
 	}
@@ -332,14 +333,14 @@ func UpdateOrgRole(c *gin.Context) {
 	params["OrgId"] = body.OrgId
 	params["RoleId"] = body.OldRoleId
 	params["Flag"] = false
-	if err = AccountMapper.UpdateUserOrgRole(params, begin); err != nil {
+	if err = dao.AccountMapper.UpdateUserOrgRole(params, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
 	}
 	params["RoleId"] = body.NewRoleId
 	params["Flag"] = true
-	if err = AccountMapper.UpdateUserOrgRole(params, begin); err != nil {
+	if err = dao.AccountMapper.UpdateUserOrgRole(params, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
@@ -362,14 +363,14 @@ func UpdateUserOrg(c *gin.Context) {
 	params["UserId"] = token.Id
 	params["OrgId"] = body.OldOrgId
 	params["Flag"] = false
-	if err = AccountMapper.UpdateUserOrg(params, begin); err != nil {
+	if err = dao.AccountMapper.UpdateUserOrg(params, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
 	}
 	params["OrgId"] = body.NewOrgId
 	params["Flag"] = true
-	if err = AccountMapper.UpdateUserOrg(params, begin); err != nil {
+	if err = dao.AccountMapper.UpdateUserOrg(params, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
@@ -385,7 +386,7 @@ func GetSecure(c *gin.Context) {
 	params := map[string]any{
 		"Id": token.Id,
 	}
-	if user, err = AccountMapper.SelectUserById(params); err != nil {
+	if user, err = dao.AccountMapper.SelectUserById(params); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
@@ -488,14 +489,14 @@ func ResetPassword(c *gin.Context) {
 	params["Password"] = newPassword
 	if args.Phone != "" {
 		params["Phone"] = args.Phone
-		if err = AccountMapper.RestUserPasswordByPhone(params); err != nil {
+		if err = dao.AccountMapper.RestUserPasswordByPhone(params); err != nil {
 			c.JSON(500, resp.Error(err, resp.Msg("重置失败")))
 			return
 		}
 	}
 	if args.Email != "" {
 		params["Email"] = args.Email
-		if err = AccountMapper.RestUserPasswordByEmail(params); err != nil {
+		if err = dao.AccountMapper.RestUserPasswordByEmail(params); err != nil {
 			c.JSON(500, resp.Error(err, resp.Msg("重置失败")))
 			return
 		}
@@ -509,7 +510,7 @@ func UpdateUserPassword(c *gin.Context) {
 	web.BindJSON(c, &body)
 	token := c.MustGet(auth.Key).(*auth.Token)
 	var user model.User
-	if user, err = AccountMapper.SelectUserById(map[string]any{"Id": token.Id}); err != nil {
+	if user, err = dao.AccountMapper.SelectUserById(map[string]any{"Id": token.Id}); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
 	}
@@ -519,7 +520,7 @@ func UpdateUserPassword(c *gin.Context) {
 		return
 	}
 	newPassword := accountutil.Password(body.NewPassword)
-	if err = AccountMapper.UpdateUserPassword(map[string]any{"Id": token.Id, "Password": newPassword}); err != nil {
+	if err = dao.AccountMapper.UpdateUserPassword(map[string]any{"Id": token.Id, "Password": newPassword}); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
 	}
@@ -580,7 +581,7 @@ func UpdateUserPhone(c *gin.Context) {
 		return
 	}
 	params := map[string]any{"Id": token.Id, "Phone": body.Phone}
-	if check, err = AccountMapper.CheckUserPhone(params); err != nil {
+	if check, err = dao.AccountMapper.CheckUserPhone(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
@@ -589,7 +590,7 @@ func UpdateUserPhone(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("手机号已存在")))
 		return
 	}
-	if err = AccountMapper.UpdateUserPhone(params); err != nil {
+	if err = dao.AccountMapper.UpdateUserPhone(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
@@ -604,7 +605,7 @@ func UpdateUserEmail(c *gin.Context) {
 	token := c.MustGet(auth.Key).(*auth.Token)
 	var check bool
 	params := map[string]any{"Id": token.Id, "Email": body.Email}
-	if check, err = AccountMapper.CheckUserEmail(params); err != nil {
+	if check, err = dao.AccountMapper.CheckUserEmail(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
@@ -657,7 +658,7 @@ func CheckPassword(c *gin.Context) {
 	web.BindJSON(c, &body)
 	token := c.MustGet(auth.Key).(*auth.Token)
 	var user model.User
-	if user, err = AccountMapper.SelectUserById(map[string]any{"Id": token.Id}); err != nil {
+	if user, err = dao.AccountMapper.SelectUserById(map[string]any{"Id": token.Id}); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("修改失败")))
 		return
 	}
@@ -720,7 +721,7 @@ func CheckEmailVerify(c *gin.Context) {
 	// 二次验证邮箱是否被其他用户绑定
 	var check bool
 	params := map[string]any{"Id": userId, "Email": email}
-	if check, err = AccountMapper.CheckUserEmail(params); err != nil {
+	if check, err = dao.AccountMapper.CheckUserEmail(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(nil, resp.Msg("绑定失败"), resp.Code(resp.EmailVerifyErr)))
 		return
@@ -729,7 +730,7 @@ func CheckEmailVerify(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("邮箱已被绑定"), resp.Code(resp.EmailVerifyErr)))
 		return
 	}
-	if err = AccountMapper.UpdateUserEmail(params); err != nil {
+	if err = dao.AccountMapper.UpdateUserEmail(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(nil, resp.Msg("绑定失败"), resp.Code(resp.EmailVerifyErr)))
 		return
@@ -748,7 +749,7 @@ func InitRegisterUser(user model.User, begin *sql.Tx) error {
 	params := map[string]any{
 		"list": list,
 	}
-	if err = AuthMapper.AddOrgUserRoleToolAuth(params, begin); err != nil {
+	if err = dao.AuthMapper.AddOrgUserRoleToolAuth(params, begin); err != nil {
 		return err
 	}
 	// 2. 初始化用户所有的插件配置项
@@ -763,7 +764,7 @@ func InitRegisterUser(user model.User, begin *sql.Tx) error {
 	params = map[string]any{
 		"list": templates,
 	}
-	if err = AccountMapper.AddSetting(params, begin); err != nil {
+	if err = dao.AccountMapper.AddSetting(params, begin); err != nil {
 		return err
 	}
 	return nil

@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jimu-server/common/resp"
 	"github.com/jimu-server/model"
+	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/util/pageutils"
 	"github.com/jimu-server/util/uuidutils/uuid"
 	"github.com/jimu-server/web"
@@ -15,7 +16,7 @@ func CreateFun(c *gin.Context) {
 	var err error
 	web.BindJSON(c, &args)
 	args.Id = uuid.String()
-	if err = FunMapper.CreateFun(args); err != nil {
+	if err = dao.FunMapper.CreateFun(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("创建失败")))
 		return
 	}
@@ -33,7 +34,7 @@ func DeleteFun(c *gin.Context) {
 
 	// todo 判断当前的 功能的授权情况以后在进行删除
 
-	if err = FunMapper.DeleteFun(map[string]any{
+	if err = dao.FunMapper.DeleteFun(map[string]any{
 		"list": args.List,
 	}); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("删除失败")))
@@ -55,7 +56,7 @@ func GetFun(c *gin.Context) {
 	}
 	args.Start, args.End = offset, limit
 	var count int64 = 0
-	if orgs, count, err = FunMapper.GetFun(args); err != nil {
+	if orgs, count, err = dao.FunMapper.GetFun(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/jimu-server/common/resp"
 	"github.com/jimu-server/db"
 	"github.com/jimu-server/model"
+	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/util/pageutils"
 	"github.com/jimu-server/util/treeutils/tree"
 	"github.com/jimu-server/util/uuidutils/uuid"
@@ -21,7 +22,7 @@ func CreateOrg(c *gin.Context) {
 		return
 	}
 	args.Id = uuid.String()
-	if err = OrgMapper.CreateOrg(args); err != nil {
+	if err = dao.OrgMapper.CreateOrg(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("创建失败")))
 		return
 	}
@@ -41,7 +42,7 @@ func DeleteOrg(c *gin.Context) {
 	}
 	// 1.查询组织内是否存在用户
 	id := ""
-	if id, err = OrgMapper.ExistUser(args); err != nil {
+	if id, err = dao.OrgMapper.ExistUser(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("删除失败")))
 		return
 	}
@@ -51,7 +52,7 @@ func DeleteOrg(c *gin.Context) {
 	}
 	// 2.检查是否有子组织
 	var ids []string
-	if ids, err = OrgMapper.IsParentOrg(args); err != nil {
+	if ids, err = dao.OrgMapper.IsParentOrg(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("删除失败")))
 		return
 	}
@@ -60,7 +61,7 @@ func DeleteOrg(c *gin.Context) {
 		return
 	}
 	// 3.删除组织
-	if err = OrgMapper.DeleteOrg(args); err != nil {
+	if err = dao.OrgMapper.DeleteOrg(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("组织删除失败")))
 		return
 	}
@@ -84,7 +85,7 @@ func GetOrg(c *gin.Context) {
 	}
 	args.Start, args.End = offset, limit
 	var count int64 = 0
-	if orgs, count, err = OrgMapper.GetOrgChild(args); err != nil {
+	if orgs, count, err = dao.OrgMapper.GetOrgChild(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
@@ -105,7 +106,7 @@ func GetOrgUserList(c *gin.Context) {
 	}
 	args.Start, args.End = offset, limit
 	var count int64 = 0
-	if users, count, err = OrgMapper.GetOrgUserList(args); err != nil {
+	if users, count, err = dao.OrgMapper.GetOrgUserList(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
@@ -126,7 +127,7 @@ func GetOrgRoleList(c *gin.Context) {
 	}
 	args.Start, args.End = offset, limit
 	var count int64 = 0
-	if roles, count, err = OrgMapper.GetOrgRoleList(args); err != nil {
+	if roles, count, err = dao.OrgMapper.GetOrgRoleList(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
@@ -141,7 +142,7 @@ func UpdateOrgInfo(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("请求参数解析失败")))
 		return
 	}
-	if err = OrgMapper.UpdateOrg(args); err != nil {
+	if err = dao.OrgMapper.UpdateOrg(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("更新失败")))
 		return
 	}
@@ -151,7 +152,7 @@ func UpdateOrgInfo(c *gin.Context) {
 func Dictionary(c *gin.Context) {
 	var err error
 	var dict []*model.AppDictionary
-	if dict, err = OrgMapper.GetDictionary(); err != nil {
+	if dict, err = dao.OrgMapper.GetDictionary(); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -174,7 +175,7 @@ func GetOrgUserAuthTool(c *gin.Context) {
 		"OrgId":  orgId,
 	}
 	tools := []*model.Tool{}
-	if tools, err = AuthMapper.SelectOrgUserAuthTool(params); err != nil {
+	if tools, err = dao.AuthMapper.SelectOrgUserAuthTool(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -223,7 +224,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 			list = append(list, model.AuthUserRole{Id: uuid.String(), RoleId: v, UserId: args.UserId, OrgId: args.OrgId, FirstChoice: false})
 		}
 		params["list"] = list
-		if err = AuthMapper.AddOrgUserRoleAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.AddOrgUserRoleAuth(params, begin); err != nil {
 			c.JSON(500, resp.Error(err, resp.Msg("添加失败")))
 			return
 		}
@@ -239,7 +240,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 	for _, v := range args.Auths {
 		queryParams["RoleId"] = v
 		// 查询对应角色的所有工具栏权限
-		if toolIds, err = AuthMapper.SelectOrgRoleToolAuth(queryParams); err != nil {
+		if toolIds, err = dao.AuthMapper.SelectOrgRoleToolAuth(queryParams); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("工具栏权限授权失败")))
 			return
@@ -250,7 +251,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 
 			queryParams["ToolId"] = toolId
 			// 查询对应角色对应工具栏的所有路由权限
-			if toolRouterIds, err = AuthMapper.SelectOrgRoleRouterAuth(queryParams); err != nil {
+			if toolRouterIds, err = dao.AuthMapper.SelectOrgRoleRouterAuth(queryParams); err != nil {
 				begin.Rollback()
 				c.JSON(500, resp.Error(err, resp.Msg("工具栏权限授权失败")))
 				return
@@ -265,7 +266,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 	// 2.1 开始授权工具
 	if len(authTool) != 0 {
 		params["list"] = authTool
-		if err = AuthMapper.AddOrgUserRoleToolAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.AddOrgUserRoleToolAuth(params, begin); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("工具栏权限授权失败")))
 			return
@@ -275,7 +276,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 	// 2.2 开始工具栏路由授权
 	if len(authToolRouter) != 0 {
 		params["list"] = authToolRouter
-		if err = AuthMapper.AddOrgUserRoleToolRouterAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.AddOrgUserRoleToolRouterAuth(params, begin); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("工具栏路由权限授权失败")))
 			return
@@ -287,7 +288,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 	// 3.给角色取消授权
 	if len(args.UnAuth) != 0 {
 		// 2.给角色取消授权
-		if err = AuthMapper.DeleteOrgUserRoleAuth(map[string]any{
+		if err = dao.AuthMapper.DeleteOrgUserRoleAuth(map[string]any{
 			"OrgId":  args.OrgId,
 			"UserId": args.UserId,
 			"list":   args.UnAuth,
@@ -303,7 +304,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 	var unAuthToolRouter []map[string]any
 	for _, roleId := range args.UnAuth {
 		// 4.1 删除组织用户取消角色对应的 工具栏授权
-		if unToolIds, err = AuthMapper.SelectOrgRoleToolAuth(map[string]any{
+		if unToolIds, err = dao.AuthMapper.SelectOrgRoleToolAuth(map[string]any{
 			"RoleId": roleId,
 			"UserId": args.UserId,
 			"OrgId":  args.OrgId,
@@ -325,7 +326,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 		for _, toolId := range unToolIds {
 			var routerIds []string
 			// 查询组织用户角色对应的工具栏的路由权限
-			if routerIds, err = AuthMapper.SelectOrgRoleRouterAuth(map[string]any{
+			if routerIds, err = dao.AuthMapper.SelectOrgRoleRouterAuth(map[string]any{
 				"OrgId":  args.OrgId,
 				"UserId": args.UserId,
 				"RoleId": roleId,
@@ -349,7 +350,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 	}
 
 	if len(unToolIds) != 0 {
-		if err = AuthMapper.DelOrgUserRoleToolAuth(unAuthTool, begin); err != nil {
+		if err = dao.AuthMapper.DelOrgUserRoleToolAuth(unAuthTool, begin); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("删除失败")))
 			return
@@ -358,7 +359,7 @@ func OrgUserRoleAuth(c *gin.Context) {
 
 	if len(unAuthToolRouter) != 0 {
 		for _, unauth := range unAuthToolRouter {
-			if err = AuthMapper.DelOrgUserRoleToolRouterAuth(unauth, begin); err != nil {
+			if err = dao.AuthMapper.DelOrgUserRoleToolRouterAuth(unauth, begin); err != nil {
 				begin.Rollback()
 				c.JSON(500, resp.Error(err, resp.Msg("删除失败")))
 				return
@@ -387,7 +388,7 @@ func OrgUserRoleToolAuth(c *gin.Context) {
 		params := map[string]any{
 			"list": list,
 		}
-		if err = AuthMapper.AddOrgUserRoleToolAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.AddOrgUserRoleToolAuth(params, begin); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("添加失败")))
 			return
@@ -401,7 +402,7 @@ func OrgUserRoleToolAuth(c *gin.Context) {
 			"RoleId": args.RoleId,
 			"list":   args.UnAuth,
 		}
-		if err = AuthMapper.DelOrgUserRoleToolAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.DelOrgUserRoleToolAuth(params, begin); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("删除失败")))
 			return
@@ -428,7 +429,7 @@ func OrgUserRoleToolRoleAuth(c *gin.Context) {
 		params := map[string]any{
 			"list": list,
 		}
-		if err = AuthMapper.AddOrgUserRoleToolRouterAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.AddOrgUserRoleToolRouterAuth(params, begin); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("添加失败")))
 			return
@@ -443,7 +444,7 @@ func OrgUserRoleToolRoleAuth(c *gin.Context) {
 			"ToolId": args.ToolId,
 			"list":   args.UnAuth,
 		}
-		if err = AuthMapper.DelOrgUserRoleToolRouterAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.DelOrgUserRoleToolRouterAuth(params, begin); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("删除失败")))
 			return
@@ -466,7 +467,7 @@ func GetOrgUserAuthToolRouter(c *gin.Context) {
 		"ToolId": toolId,
 	}
 	routers := []*model.Router{}
-	if routers, err = AuthMapper.SelectOrgUserAuthToolRouter(params); err != nil {
+	if routers, err = dao.AuthMapper.SelectOrgUserAuthToolRouter(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return

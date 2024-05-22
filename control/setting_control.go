@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jimu-server/common/resp"
 	"github.com/jimu-server/middleware/auth"
+	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/redis/redisUtil"
 	"github.com/jimu-server/setting"
 	"github.com/jimu-server/web"
@@ -36,7 +37,7 @@ func UpdateSettings(c *gin.Context) {
 		"UserId":  token.Id,
 	}
 	// 更新指定配置项配置数据
-	if err = AccountMapper.UpdateSetting(param); err != nil {
+	if err = dao.AccountMapper.UpdateSetting(param); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("更新失败")))
 		return

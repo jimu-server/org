@@ -5,6 +5,7 @@ import (
 	"github.com/jimu-server/common/resp"
 	"github.com/jimu-server/middleware/auth"
 	"github.com/jimu-server/model"
+	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/util/treeutils/tree"
 )
 
@@ -19,7 +20,7 @@ func GetAuthMenu(c *gin.Context) {
 		"OrgId":  orgId,
 	}
 	menus := []*model.Router{}
-	if menus, err = AuthMapper.SelectAuthUserMenu(params); err != nil {
+	if menus, err = dao.AuthMapper.SelectAuthUserMenu(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -41,7 +42,7 @@ func GetAuthTool(c *gin.Context) {
 		"Position": position,
 	}
 	tools := []*model.Tool{}
-	if tools, err = AuthMapper.SelectAuthUserTool(params); err != nil {
+	if tools, err = dao.AuthMapper.SelectAuthUserTool(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -62,7 +63,7 @@ func GetAuthToolMenu(c *gin.Context) {
 		"ToolId": toolId,
 	}
 	menus := []*model.Router{}
-	if menus, err = AuthMapper.SelectAuthUserToolMenu(params); err != nil {
+	if menus, err = dao.AuthMapper.SelectAuthUserToolMenu(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -84,7 +85,7 @@ func GetAuthToolMenuChild(c *gin.Context) {
 		"ToolId": toolId,
 	}
 	menus := []*model.Router{}
-	if menus, err = AuthMapper.SelectAuthUserToolMenu(params); err != nil {
+	if menus, err = dao.AuthMapper.SelectAuthUserToolMenu(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -105,12 +106,12 @@ func UserAuthAllRoute(c *gin.Context) {
 	}
 	all := []string{}
 	list := []string{}
-	if list, err = AuthMapper.SelectAuthAllUserRouterPath(params); err != nil {
+	if list, err = dao.AuthMapper.SelectAuthAllUserRouterPath(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 	}
 	all = append(all, list...)
-	if list, err = AuthMapper.SelectAuthAllUserToolRouterPath(params); err != nil {
+	if list, err = dao.AuthMapper.SelectAuthAllUserToolRouterPath(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -128,7 +129,7 @@ func UserJoinOrgList(c *gin.Context) {
 		"OrgId":  orgId,
 	}
 	orgs := []*model.Org{}
-	if orgs, err = AuthMapper.SelectUserOrgList(params); err != nil {
+	if orgs, err = dao.AuthMapper.SelectUserOrgList(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -140,7 +141,7 @@ func UserJoinOrgTreeList(c *gin.Context) {
 	var err error
 	orgId := c.Query("orgId")
 	var all []*model.Org
-	if all, err = AuthMapper.SelectAllOrg(); err != nil {
+	if all, err = dao.AuthMapper.SelectAllOrg(); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -158,7 +159,7 @@ func UserJoinOrgRoleList(c *gin.Context) {
 		"OrgId":  orgId,
 	}
 	roles := []*model.Role{}
-	if roles, err = AuthMapper.SelectUserOrgRoleList(params); err != nil {
+	if roles, err = dao.AuthMapper.SelectUserOrgRoleList(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
@@ -175,7 +176,7 @@ func GetOrgUserRoleList(c *gin.Context) {
 		"OrgId":  orgId,
 	}
 	roles := []*model.Role{}
-	if roles, err = AuthMapper.SelectUserOrgRoleList(params); err != nil {
+	if roles, err = dao.AuthMapper.SelectUserOrgRoleList(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return

@@ -8,6 +8,7 @@ import (
 	"github.com/jimu-server/db"
 	"github.com/jimu-server/middleware/auth"
 	"github.com/jimu-server/model"
+	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/util/pageutils"
 	"github.com/jimu-server/util/treeutils/tree"
 	"github.com/jimu-server/util/uuidutils/uuid"
@@ -30,14 +31,14 @@ func CreateRole(c *gin.Context) {
 		RoleKey: args.RoleKey,
 	}
 	// 创建角色
-	if err = RoleMapper.CreateRole(role, begin); err != nil {
+	if err = dao.RoleMapper.CreateRole(role, begin); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("创建失败")))
 		return
 	}
 	// 创建关联关系
 	args.Id = uuid.String()
 	args.RoleId = role.Id
-	if err = RoleMapper.CreateOrgRole(args, begin); err != nil {
+	if err = dao.RoleMapper.CreateOrgRole(args, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("创建失败")))
 		return
@@ -53,7 +54,7 @@ func CreateRole(c *gin.Context) {
 	params := map[string]interface{}{
 		"list": []model.AuthUserRole{auth},
 	}
-	if err = AuthMapper.AddOrgUserRoleAuth(params, begin); err != nil {
+	if err = dao.AuthMapper.AddOrgUserRoleAuth(params, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("授权失败")))
 		return
@@ -85,7 +86,7 @@ func DeleteRole(c *gin.Context) {
 	//}
 
 	// 3.删除角色
-	if err = RoleMapper.DeleteRole(args); err != nil {
+	if err = dao.RoleMapper.DeleteRole(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("角色删除失败")))
 		return
 	}
@@ -108,7 +109,7 @@ func GetRole(c *gin.Context) {
 	}
 	args.Start, args.End = offset, limit
 	var count int64 = 0
-	if orgs, count, err = RoleMapper.GetRole(args); err != nil {
+	if orgs, count, err = dao.RoleMapper.GetRole(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
@@ -124,7 +125,7 @@ func UpdateRoleInfo(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("请求参数解析失败")))
 		return
 	}
-	if err = RoleMapper.UpdateRole(args); err != nil {
+	if err = dao.RoleMapper.UpdateRole(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("更新失败")))
 		return
 	}
@@ -136,7 +137,7 @@ func OrgRoleToolList(c *gin.Context) {
 	var tools []*model.Tool
 	var args *RoleAuthQuery
 	web.ShouldJSON(c, &args)
-	if tools, err = AuthMapper.OrgRoleToolList(args); err != nil {
+	if tools, err = dao.AuthMapper.OrgRoleToolList(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
@@ -148,7 +149,7 @@ func OrgRoleToolRouterList(c *gin.Context) {
 	var routers []*model.Router
 	var args *RoleAuthQuery
 	web.ShouldJSON(c, &args)
-	if routers, err = AuthMapper.OrgRoleToolRouterList(args); err != nil {
+	if routers, err = dao.AuthMapper.OrgRoleToolRouterList(args); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
@@ -178,7 +179,7 @@ func OrgRoleToolAuth(c *gin.Context) {
 		"list": list,
 	}
 	if len(list) != 0 {
-		if err = AuthMapper.OrgRoleToolAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.OrgRoleToolAuth(params, begin); err != nil {
 			c.JSON(500, resp.Error(err, resp.Msg("授权失败")))
 			return
 		}
@@ -188,7 +189,7 @@ func OrgRoleToolAuth(c *gin.Context) {
 		params["list"] = args.UnAuth
 		params["OrgId"] = args.OrgId
 		params["RoleId"] = args.RoleId
-		if err = AuthMapper.OrgRoleToolUnAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.OrgRoleToolUnAuth(params, begin); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("取消授权失败")))
 			return
@@ -221,7 +222,7 @@ func OrgRoleToolRouterAuth(c *gin.Context) {
 		"list": list,
 	}
 	if len(list) != 0 {
-		if err = AuthMapper.OrgRoleToolRouterAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.OrgRoleToolRouterAuth(params, begin); err != nil {
 			c.JSON(500, resp.Error(err, resp.Msg("授权失败")))
 			return
 		}
@@ -231,7 +232,7 @@ func OrgRoleToolRouterAuth(c *gin.Context) {
 		params["OrgId"] = args.OrgId
 		params["RoleId"] = args.RoleId
 		params["ToolId"] = args.ToolId
-		if err = AuthMapper.OrgRoleToolRouterUnAuth(params, begin); err != nil {
+		if err = dao.AuthMapper.OrgRoleToolRouterUnAuth(params, begin); err != nil {
 			begin.Rollback()
 			c.JSON(500, resp.Error(err, resp.Msg("取消授权失败")))
 			return
