@@ -54,4 +54,19 @@ type AuthMapper struct {
 
 	OrgRoleToolUnAuth       func(any, *sql.Tx) error
 	OrgRoleToolRouterUnAuth func(any, *sql.Tx) error
+
+	// 查询组织指定用户的所有角色Id
+	QueryOrgUserRoleIdList func(any) ([]string, error)
+
+	// 查询组织指定用户的所有工具栏Id
+	QueryOrgUserToolIdList func(any) ([]string, error)
+
+	// 查询组织指定用户的所有路由Id
+	QueryOrgUserRouterIdList func(any) ([]string, error)
+
+	// 根据id查询工具栏
+	SelectToolById func(any) ([]*model.Tool, error)
+
+	// 根据id查询路由
+	SelectRouterById func(any) ([]*model.Router, error)
 }

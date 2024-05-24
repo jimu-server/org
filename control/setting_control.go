@@ -11,6 +11,14 @@ import (
 	"github.com/jimu-server/web"
 )
 
+// GetSettings
+// @Summary 	获取用户设置
+// @Description 获取用户设置
+// @Tags 		用户接口
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body SettingsArgs true "请求体"
+// @Router 		/api/settings [post]
 func GetSettings(c *gin.Context) {
 	var err error
 	var reqParams *SettingsArgs
@@ -26,6 +34,14 @@ func GetSettings(c *gin.Context) {
 	c.JSON(200, resp.Success(data, resp.Msg("获取成功")))
 }
 
+// UpdateSettings
+// @Summary 	更新用户设置
+// @Description 更新用户设置
+// @Tags 		用户接口
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body SettingsArgs true "请求体"
+// @Router 		/api/settings/update [post]
 func UpdateSettings(c *gin.Context) {
 	var err error
 	var reqParams *SettingsArgs

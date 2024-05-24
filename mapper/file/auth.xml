@@ -257,4 +257,48 @@
     </delete>
 
 
+    <select id="QueryOrgUserRoleIdList">
+        select role_id
+        from app_org_user_role
+        where user_id = {userId}
+          and org_id = {orgId}
+    </select>
+
+    <select id="QueryOrgUserToolIdList">
+        select distinct(tool_id)
+        from app_org_user_role_tool_auth
+        where user_id = {userId}
+          and org_id = {orgId}
+          and role_id in
+        <for slice="{roles}" item="item" open="(" separator="," close=")">
+        {item}
+        </for>
+    </select>
+
+    <select id="QueryOrgUserRouterIdList">
+        select distinct(router_id)
+        from app_org_user_role_router_auth
+        where user_id = {userId}
+          and org_id = {orgId}
+          and role_id in
+        <for slice="{roles}" item="item" open="(" separator="," close=")">
+            {item}
+        </for>
+    </select>
+
+    <select id="SelectToolById">
+        select * from app_tool where id in
+        <for slice="{tools}" item="item" open="(" separator="," close=")">
+            {item}
+        </for>
+    </select>
+
+    <select id="SelectRouterById">
+        select * from app_router where id in
+        <for slice="{routers}" item="item" open="(" separator="," close=")">
+            {item}
+        </for>
+    </select>
+
+
 </mapper>

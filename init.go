@@ -36,7 +36,7 @@ func init() {
 	api.POST("/forget/code/check", control.ForgetCodeCheck) // (手机号/邮箱号)重置密码获取验证码验证
 	api.POST("/forget/reset", control.ResetPassword)        // (手机号/邮箱号)重置密码
 
-	api = web.Engine.Group("/api", auth.Authorization())
+	api = web.Engine.Group("/api", auth.Authorization("/api/user/default/info"))
 	api.GET("/uuid", control.GetUid) // 生成消息uuid
 	api.GET("/dictionary", control.Dictionary)
 	api.POST("/org/create", control.CreateOrg)                             // 创建组织
@@ -95,5 +95,5 @@ func init() {
 	api.POST("/user/secure/update/email", control.UpdateUserEmail)           // 更新用户邮箱
 	api.POST("/user/secure/check/password", control.CheckPassword)           // 验证用户密码
 	api.POST("/settings", control.GetSettings)                               // 获取用户设置
-	api.POST("/settings/update", control.UpdateSettings)                     // 获取用户设置
+	api.POST("/settings/update", control.UpdateSettings)                     // 更新用户设置
 }

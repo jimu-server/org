@@ -36,6 +36,15 @@ import (
 )
 
 // Register 注册用户
+// @Summary      注册用户
+// @Description  系统用户注册
+// @Tags         用户接口
+// @Accept       json
+// @Produce      json
+// @Param	     args body RegisterArgs true "请求体"
+// @Success      200  {object}  resp.Response{code=int,data=model.User}
+// @Failure      500  {object}  resp.Response{code=int,data=any}
+// @Router       /public/register [post]
 func Register(c *gin.Context) {
 	var body RegisterArgs
 	var err error
@@ -118,6 +127,16 @@ func Register(c *gin.Context) {
 	c.JSON(200, resp.Success(account, resp.Msg("注册成功")))
 }
 
+// Login
+// @Summary      用户登录
+// @Description  系统用户进行系统登陆
+// @Tags         用户接口
+// @Accept       json
+// @Param        args body  LoginArgs true "登录参数"
+// @Produce      json
+// @Success      200  {object}  resp.Response{code=int,data=any,msg=string}
+// @Failure      500  {object}  resp.Response{code=int,data=any,msg=string}
+// @Router       /public/login [post]
 func Login(c *gin.Context) {
 	var body LoginArgs
 	var err error
@@ -241,6 +260,16 @@ func AllUser(c *gin.Context) {
 	c.JSON(200, resp.Success(resp.NewPage(count, users), resp.Msg("查询成功")))
 }
 
+// UpdateUserInfo
+// @Summary      更新用户信息
+// @Description  更新用户信息
+// @Tags         用户接口
+// @Accept       json
+// @Param        args body  UpdateUserInfoArgs true "更新参数"
+// @Produce      json
+// @Success      200  {object}  resp.Response{code=int,data=any,msg=string}
+// @Failure      500  {object}  resp.Response{code=int,data=any,msg=string}
+// @Router       /api/user/update [post]
 func UpdateUserInfo(c *gin.Context) {
 	var err error
 	var body *UpdateUserInfoArgs
@@ -284,6 +313,18 @@ func UpdateUserInfo(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }
 
+// UpdateAvatar
+//
+//	@Summary      更新用户头像
+//
+// @Description  更新用户头像
+// @Tags         用户接口
+// @Accept       multipart/form-data
+// @Param		 avatar	formData	file	true	"用户头像文件"
+// @Produce      json
+// @Success      200  {object}  resp.Response{code=int,data=any,msg=string}
+// @Failure      500  {object}  resp.Response{code=int,data=any,msg=string}
+// @Router       /api/user/update/avatar [post]
 func UpdateAvatar(c *gin.Context) {
 	var err error
 	var file *multipart.FileHeader
@@ -318,6 +359,16 @@ func UpdateAvatar(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }
 
+// UpdateOrgRole
+// @Summary      设置指定组织的默认角色
+// @Description  用户修改指定组织的默认角色
+// @Tags         用户接口
+// @Accept       json
+// @Param        args body  UpdateUserOrgRole true "请求体"
+// @Produce      json
+// @Success      200  {object}  resp.Response{code=int,data=any,msg=string}
+// @Failure      500  {object}  resp.Response{code=int,data=any,msg=string}
+// @Router       /api/user/org/update/role [post]
 func UpdateOrgRole(c *gin.Context) {
 	var err error
 	var body *UpdateUserOrgRole
@@ -349,6 +400,16 @@ func UpdateOrgRole(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }
 
+// UpdateUserOrg
+// @Summary      设置用户的默认组织
+// @Description  用户修改登录系统的默认组织,用户智能有一个默认组织
+// @Tags         用户接口
+// @Accept       json
+// @Param        args body  UpdateUserOrgArgs true "请求体"
+// @Produce      json
+// @Success      200  {object}  resp.Response{code=int,data=any,msg=string}
+// @Failure      500  {object}  resp.Response{code=int,data=any,msg=string}
+// @Router       /api/user/org/update/org [post]
 func UpdateUserOrg(c *gin.Context) {
 	var err error
 	var body *UpdateUserOrgArgs
@@ -407,6 +468,16 @@ func GetSecure(c *gin.Context) {
 	c.JSON(200, resp.Success(data, resp.Msg("获取成功")))
 }
 
+// PhoneLogin
+// @Summary      手机登录
+// @Description  用户通过手机号登录系统
+// @Tags         登录
+// @Accept       json
+// @Param        args body  PhoneLoginArgs true "请求体"
+// @Produce      json
+// @Success      200  {object}  resp.Response{code=int,data=any,msg=string}
+// @Failure      500  {object}  resp.Response{code=int,data=any,msg=string}
+// @Router       /public/phone [post]
 func PhoneLogin(c *gin.Context) {
 	var err error
 	var body *PhoneLoginArgs
@@ -423,6 +494,15 @@ func PhoneLogin(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("登录成功")))
 }
 
+// PhoneCode
+// @Summary      登录验证码
+// @Description  手机号获取登录验证码
+// @Tags         登录
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  resp.Response{code=int,data=string,msg=string}
+// @Failure      500  {object}  resp.Response{code=int,data=any,msg=string}
+// @Router       /public/login_code [get]
 func PhoneCode(c *gin.Context) {
 	value := rand.Intn(100000)
 	phone := c.Query("phone")
@@ -435,6 +515,14 @@ func PhoneCode(c *gin.Context) {
 	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
 }
 
+// ForgetCode
+// @Summary 	忘记密码验证
+// @Description (手机号/邮箱号)重置密码获取验证码
+// @Tags 		登录
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body ForGetArgs true "请求体"
+// @Router 		/public/forget/code [get]
 func ForgetCode(c *gin.Context) {
 	var args *ForGetArgs
 	web.ShouldJSON(c, &args)
@@ -456,6 +544,14 @@ func ForgetCode(c *gin.Context) {
 	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
 }
 
+// ForgetCodeCheck
+// @Summary 	验证码验证
+// @Description (手机号/邮箱号)重置密码获取验证码验证
+// @Tags 		登录
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body ForGetArgs true "请求体"
+// @Router 		/public/forget/code/check [post]
 func ForgetCodeCheck(c *gin.Context) {
 	var err error
 	var args *ForGetArgs
@@ -480,6 +576,14 @@ func ForgetCodeCheck(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("验证成功")))
 }
 
+// ResetPassword
+// @Summary 	密码重置
+// @Description (手机号/邮箱号)重置密码
+// @Tags 		登录
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body ForGetArgs true "请求体"
+// @Router 		/public/forget/reset [post]
 func ResetPassword(c *gin.Context) {
 	var err error
 	var args *ForGetArgs
@@ -504,6 +608,14 @@ func ResetPassword(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("重置成功")))
 }
 
+// UpdateUserPassword
+// @Summary 	更新用户密码
+// @Description 用户修改密码
+// @Tags 		用户接口
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body SecureArgs true "请求体"
+// @Router 		/api/user/secure/update/password [post]
 func UpdateUserPassword(c *gin.Context) {
 	var err error
 	var body *SecureArgs
@@ -527,6 +639,13 @@ func UpdateUserPassword(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }
 
+// GetPhoneSecureCode
+// @Summary 	更新手机获取验证码
+// @Description 用户手机号,获取验证码接口
+// @Tags 		用户接口
+// @Accept 		json
+// @Produces 	json
+// @Router 		/api/user/secure/update/phone/code [get]
 func GetPhoneSecureCode(c *gin.Context) {
 	value := rand.Intn(100000)
 	token := c.MustGet(auth.Key).(*auth.Token)
@@ -539,6 +658,14 @@ func GetPhoneSecureCode(c *gin.Context) {
 	c.JSON(200, resp.Success(v, resp.Msg("获取成功")))
 }
 
+// CheckPhoneCode
+// @Summary 	验证码校验
+// @Description 更新用户手机号,验证码校验
+// @Tags 		用户接口
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body SecureArgs true "请求体"
+// @Router 		/api/user/secure/update/phone/code/check [post]
 func CheckPhoneCode(c *gin.Context) {
 	var err error
 	var body *SecureArgs
@@ -556,6 +683,14 @@ func CheckPhoneCode(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("验证码正确")))
 }
 
+// UpdateUserPhone
+// @Summary 	更新用户手机
+// @Description 修改用户手机号
+// @Tags 		用户接口
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body SecureArgs true "请求体"
+// @Router 		/api/user/secure/update/phone [post]
 func UpdateUserPhone(c *gin.Context) {
 	var err error
 	var body *SecureArgs
@@ -598,6 +733,14 @@ func UpdateUserPhone(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("修改成功")))
 }
 
+// UpdateUserEmail
+// @Summary 	更新用户邮箱
+// @Description 更新用户邮箱
+// @Tags 		用户接口
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body SecureArgs true "请求体"
+// @Router 		/api/user/secure/update/email [post]
 func UpdateUserEmail(c *gin.Context) {
 	var err error
 	var body *SecureArgs
@@ -652,6 +795,14 @@ func UpdateUserEmail(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("发送成功")))
 }
 
+// CheckPassword
+// @Summary 	验证用户密码
+// @Description 验证用户密码
+// @Tags 		用户接口
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body PasswordVerify true "请求体"
+// @Router 		/api/user/secure/check/password [post]
 func CheckPassword(c *gin.Context) {
 	var err error
 	var body *PasswordVerify
@@ -670,6 +821,14 @@ func CheckPassword(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("密码正确")))
 }
 
+// CheckEmailVerify
+// @Summary 	验证用户密码
+// @Description 验证用户密码
+// @Tags 		用户接口
+// @Accept 		json
+// @Produces 	json
+// @Param	    verify	path string	true	"验证信息"
+// @Router 		/public/secure/email/:verify [post]
 func CheckEmailVerify(c *gin.Context) {
 	var err error
 	var body EmailVerify

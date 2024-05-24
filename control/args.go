@@ -33,20 +33,28 @@ type ListArgs struct {
 }
 
 type OrgUserListArgs struct {
-	OrgId    string `form:"orgId" json:"orgId"`
-	Page     int    `form:"page" json:"page" binding:"required,gte=1"`
-	PageSize int    `form:"pageSize" json:"pageSize" binding:"required,gte=5"`
-	Start    int    `form:"start" json:"start"`
-	End      int    `form:"end" json:"end"`
+	// 组织id
+	OrgId string `form:"orgId" json:"orgId"`
+	// 页码
+	Page int `form:"page" json:"page" binding:"required,gte=1"`
+	// 分页大小
+	PageSize int `form:"pageSize" json:"pageSize" binding:"required,gte=5"`
+	//  开始
+	Start int `form:"start" json:"start"`
+	//  结束
+	End int `form:"end" json:"end"`
 }
 
 type OrgRoleListArgs struct {
+	// 组织id
 	OrgId string `form:"orgId" json:"orgId"`
 	PageArgs
 }
 
 type PageArgs struct {
-	Page     int `form:"page" json:"page" binding:"required,gte=1"`
+	// 页号 number
+	Page int `form:"page" json:"page" binding:"required,gte=1"`
+	// 分页 size
 	PageSize int `form:"pageSize" json:"pageSize" binding:"required,gte=5"`
 	Start    int `form:"start" json:"start"`
 	End      int `form:"end" json:"end"`

@@ -14,6 +14,14 @@ import (
 	"net/http"
 )
 
+// CreateOrg
+// @Summary 	创建组织
+// @Description 创建组织
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body model.Org true "请求体"
+// @Router 		/api/org/create [post]
 func CreateOrg(c *gin.Context) {
 	var args *model.Org
 	var err error
@@ -29,6 +37,14 @@ func CreateOrg(c *gin.Context) {
 	c.JSON(200, resp.Success(args, resp.Msg("创建成功")))
 }
 
+// DeleteOrg
+// @Summary 	删除组织
+// @Description 删除组织
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body model.Org true "请求体"
+// @Router 		/api/org/delete [post]
 func DeleteOrg(c *gin.Context) {
 	var args *model.Org
 	var err error
@@ -70,6 +86,13 @@ func DeleteOrg(c *gin.Context) {
 	return
 }
 
+// GetOrg
+// @Summary 	获取组织列表
+// @Description 获取组织列表
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Router 		/api/org/list [get]
 func GetOrg(c *gin.Context) {
 	var err error
 	var orgs []*model.Org
@@ -94,6 +117,13 @@ func GetOrg(c *gin.Context) {
 	return
 }
 
+// GetOrgUserList
+// @Summary 	获取组织下所有的用户列表
+// @Description 获取组织下所有的用户列表
+// @Tags 		管理系统
+// @Produces 	json
+// @Param 		args query OrgUserListArgs true "查询参数"
+// @Router 		/api/org/user/list [get]
 func GetOrgUserList(c *gin.Context) {
 	var err error
 	var users []*model.User
@@ -115,6 +145,14 @@ func GetOrgUserList(c *gin.Context) {
 	return
 }
 
+// GetOrgRoleList
+// @Summary 	获取组织下所有的角色列表
+// @Description 获取组织下所有的角色列表
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args query OrgRoleListArgs true "查询参数"
+// @Router 		/api/org/role/list [get]
 func GetOrgRoleList(c *gin.Context) {
 	var err error
 	var roles []*model.Role

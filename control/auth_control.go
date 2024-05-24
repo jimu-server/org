@@ -5,6 +5,7 @@ import (
 	"github.com/jimu-server/common/resp"
 	"github.com/jimu-server/middleware/auth"
 	"github.com/jimu-server/model"
+	"github.com/jimu-server/org/control/service"
 	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/util/treeutils/tree"
 )
@@ -32,41 +33,43 @@ func GetAuthMenu(c *gin.Context) {
 func GetAuthTool(c *gin.Context) {
 	var err error
 	token := c.MustGet(auth.Key).(*auth.Token)
-	roleId := c.Query("roleId")
-	orgId := c.Query("orgId")
-	position := c.Query("position")
-	params := map[string]any{
-		"RoleId":   roleId,
-		"UserId":   token.Id,
-		"OrgId":    orgId,
-		"Position": position,
+	var toolIds []string
+	var tools []*model.Tool
+	if toolIds, err = service.GetOrgUserRoleAllTool(token.Id, token.OrgId); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
+		return
 	}
-	tools := []*model.Tool{}
-	if tools, err = dao.AuthMapper.SelectAuthUserTool(params); err != nil {
+	params := map[string]any{
+		"tools": toolIds,
+	}
+	if tools, err = dao.AuthMapper.SelectToolById(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
+
 	c.JSON(200, resp.Success(tools))
 }
 
 func GetAuthToolMenu(c *gin.Context) {
 	var err error
+	var routers []string
+	var menus []*model.Router
 	token := c.MustGet(auth.Key).(*auth.Token)
-	roleId := c.Query("roleId")
-	orgId := c.Query("orgId")
-	toolId := c.Query("toolId")
-	params := map[string]any{
-		"RoleId": roleId,
-		"UserId": token.Id,
-		"OrgId":  orgId,
-		"ToolId": toolId,
-	}
-	menus := []*model.Router{}
-	if menus, err = dao.AuthMapper.SelectAuthUserToolMenu(params); err != nil {
-		logs.Error(err.Error())
+
+	if routers, err = service.GetOrgUserToolAllRout(token.Id, token.OrgId); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
+	}
+	if len(routers) > 0 {
+		params := map[string]any{
+			"routers": routers,
+		}
+		if menus, err = dao.AuthMapper.SelectRouterById(params); err != nil {
+			logs.Error(err.Error())
+			c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
+			return
+		}
 	}
 	list := tree.BuildTree("", menus)
 	c.JSON(200, resp.Success(list))
