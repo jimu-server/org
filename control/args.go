@@ -75,13 +75,23 @@ type DelArgs struct {
 	List []string `form:"list" json:"list" binding:"required"`
 }
 
+// AuthArgs
+// 无感权限更新请求参数,用于多个地方的无感操作,工具栏授权,工具栏路由授权
 type AuthArgs struct {
-	OrgId  string   `form:"orgId" json:"orgId" binding:"required"`
-	UserId string   `form:"userId" json:"userId" binding:"required"`
-	RoleId string   `form:"roleId" json:"roleId"`
-	ToolId string   `form:"toolId" json:"toolId"`
-	Auths  []string `form:"auths" json:"auths" binding:"required"`
+	// 组织id
+	OrgId string `form:"orgId" json:"orgId" binding:"required"`
+	// 用户id
+	UserId string `form:"userId" json:"userId" binding:"required"`
+	// 角色id
+	RoleId string `form:"roleId" json:"roleId"`
+	// 工具id
+	ToolId string `form:"toolId" json:"toolId"`
+	// 待授权id
+	Auths []string `form:"auths" json:"auths" binding:"required"`
+	// 待取消授权id
 	UnAuth []string `form:"unAuth" json:"unAuth" binding:"required"`
+
+	Status bool `form:"status" json:"status"`
 }
 
 type RoleAuthQuery struct {

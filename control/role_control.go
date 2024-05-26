@@ -144,6 +144,14 @@ func OrgRoleToolList(c *gin.Context) {
 	c.JSON(200, resp.Success(tools, resp.Msg("查询成功")))
 }
 
+// OrgRoleToolRouterList
+// @Summary 	获取角色已授权的工具栏对应的路由列表
+// @Description 获取角色已授权的工具栏对应的路由列表
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body RoleAuthQuery true "请求体"
+// @Router 		/api/role/tool/router/tree [get]
 func OrgRoleToolRouterList(c *gin.Context) {
 	var err error
 	var routers []*model.Router

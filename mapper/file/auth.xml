@@ -18,7 +18,7 @@
         where ourta.org_id = {OrgId}
           and ourta.user_id = {UserId}
           and ourta.role_id = {RoleId}
-          and t.position={Position}
+          and t.position = {Position}
         order by create_time;
     </select>
 
@@ -52,14 +52,26 @@
         order by create_time;
     </select>
 
+    <!--获取用户已授权的菜单路由 获取的status状态是用户个人路由状态-->
     <select id="SelectOrgUserAuthToolRouter">
-        select r.*
+        select r.id,
+               r.pid,
+               r.title,
+               r.name,
+               r.icon,
+               r.component,
+               r.path,
+               r.remark,
+               ourma.status,
+               r.sort,
+               r.tool_id,
+               r.create_time
         from app_org_user_role_router_auth ourma
                  left join app_router r on (ourma.router_id = r.id)
         where ourma.org_id = {OrgId}
           and ourma.user_id = {UserId}
           and ourma.role_id = {RoleId}
-          and ourma.tool_id= {ToolId}
+          and ourma.tool_id = {ToolId}
         order by sort;
     </select>
 
@@ -70,7 +82,7 @@
         where ourma.org_id = {OrgId}
           and ourma.user_id = {UserId}
           and ourma.role_id = {RoleId}
-          and r.tool_id= {ToolId}
+          and r.tool_id = {ToolId}
         order by sort;
     </select>
 
@@ -81,7 +93,7 @@
         where ourma.org_id = {OrgId}
           and ourma.user_id = {UserId}
           and ourma.role_id = {RoleId}
-          and r.tool_id={ToolId}
+          and r.tool_id = {ToolId}
         order by sort;
     </select>
 
@@ -92,7 +104,7 @@
         where ourma.org_id = {OrgId}
           and ourma.user_id = {UserId}
           and ourma.role_id = {RoleId}
-          and m.path!=''
+          and m.path != ''
         order by sort;
     </select>
 
@@ -103,7 +115,7 @@
         where ourta.org_id = {OrgId}
           and ourta.user_id = {UserId}
           and ourta.role_id = {RoleId}
-          and t.path!=''
+          and t.path != ''
         order by create_time;
     </select>
 
@@ -124,14 +136,15 @@
         from app_org_user ou
                  left join app_org_user_role our on (ou.org_id = our.org_id and ou.user_id = our.user_id)
                  left join app_role r on our.role_id = r.id
-        where ou.user_id ={UserId} and ou.org_id={OrgId};
+        where ou.user_id = {UserId}
+          and ou.org_id = {OrgId};
     </select>
 
 
     <insert id="AddOrgUserRoleAuth">
         insert into app_org_user_role(id, org_id, user_id, role_id)
         values
-        <for slice="{list}" item="obj"  separator=",">
+        <for slice="{list}" item="obj" separator=",">
             ({obj.Id},{obj.OrgId},{obj.UserId},{obj.RoleId})
         </for>
     </insert>
@@ -145,7 +158,9 @@
     <delete id="DeleteOrgUserRoleAuth">
         delete
         from app_org_user_role
-        where org_id ={OrgId} and user_id={UserId} and role_id in
+        where org_id = {OrgId}
+          and user_id = {UserId}
+          and role_id in
         <for slice="{list}" item="id" open="(" separator="," close=")">
             {id}
         </for>
@@ -165,7 +180,7 @@
                  left join app_org_role_router_auth arra on aor.role_id = arra.role_id
         where arra.org_id = {OrgId}
           and aor.role_id = {RoleId}
-          and tool_id={ToolId};
+          and tool_id = {ToolId};
     </select>
 
     <insert id="AddOrgUserRoleToolAuth">
@@ -178,7 +193,10 @@
     <delete id="DelOrgUserRoleToolAuth">
         delete
         from app_org_user_role_tool_auth
-        where org_id ={OrgId} and user_id= {UserId} and role_id= {RoleId} and tool_id in
+        where org_id = {OrgId}
+          and user_id = {UserId}
+          and role_id = {RoleId}
+          and tool_id in
         <for slice="{list}" item="obj" open="(" close=")" separator=",">
             {obj.Id}
         </for>
@@ -195,7 +213,11 @@
     <delete id="DelOrgUserRoleToolRouterAuth">
         delete
         from app_org_user_role_router_auth
-        where org_id ={OrgId} and user_id= {UserId} and role_id= {RoleId} and tool_id={ToolId} and router_id in
+        where org_id = {OrgId}
+          and user_id = {UserId}
+          and role_id = {RoleId}
+          and tool_id = {ToolId}
+          and router_id in
         <for slice="{list}" item="obj" open="(" close=")" separator=",">
             {obj.Id}
         </for>
@@ -241,7 +263,9 @@
     <delete id="OrgRoleToolUnAuth">
         delete
         from app_org_role_tool_auth
-        where org_id ={OrgId} and role_id ={RoleId} and tool_id in
+        where org_id = {OrgId}
+          and role_id = {RoleId}
+          and tool_id in
         <for slice="{list}" item="obj" open="(" close=")" separator=",">
             {obj.Id}
         </for>
@@ -250,7 +274,10 @@
     <delete id="OrgRoleToolRouterUnAuth">
         delete
         from app_org_role_router_auth
-        where org_id ={OrgId} and role_id ={RoleId} and tool_id={ToolId} and router_id in
+        where org_id = {OrgId}
+          and role_id = {RoleId}
+          and tool_id = {ToolId}
+          and router_id in
         <for slice="{list}" item="obj" open="(" close=")" separator=",">
             {obj.Id}
         </for>
@@ -271,7 +298,7 @@
           and org_id = {orgId}
           and role_id in
         <for slice="{roles}" item="item" open="(" separator="," close=")">
-        {item}
+            {item}
         </for>
     </select>
 
@@ -287,14 +314,18 @@
     </select>
 
     <select id="SelectToolById">
-        select * from app_tool where id in
+        select *
+        from app_tool
+        where id in
         <for slice="{tools}" item="item" open="(" separator="," close=")">
             {item}
         </for>
     </select>
 
     <select id="SelectRouterById">
-        select * from app_router where id in
+        select *
+        from app_router
+        where id in
         <for slice="{routers}" item="item" open="(" separator="," close=")">
             {item}
         </for>

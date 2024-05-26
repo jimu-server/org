@@ -45,12 +45,15 @@ func init() {
 	api.GET("/org/list", control.GetOrg)                                   // 获取组织列表
 	api.GET("/org/default/role", control.GetOrg)                           // 获取组织列表
 	api.GET("/org/user/list", control.GetOrgUserList)                      // 获取组织下所有的用户列表
+	api.GET("/org/user/all", control.GetOrgAllUserList)                    // 获取所有用户列表
 	api.GET("/org/role/list", control.GetOrgRoleList)                      // 获取组织下所有的角色列表
 	api.GET("/org/user/role", control.GetOrgUserRoleList)                  // 获取组织指定用户的所有已授权角色列表
 	api.GET("/org/user/tool", control.GetOrgUserAuthTool)                  // 获取组织指定用户的所有已授权工具列表
 	api.GET("/org/user/tool/router", control.GetOrgUserAuthToolRouter)     // 获取组织指定用户的所有已授权工具下的所有路由树
 	api.POST("/org/role/auth", control.OrgUserRoleAuth)                    // 给组织的用户授权角色
+	api.POST("/org/role/auth/status", control.OrgUserRoleStatus)           // 更新组织用户已授权的角色状态
 	api.POST("/org/role/auth/tool", control.OrgUserRoleToolAuth)           // 给组织用户的角色授权工具
+	api.POST("/org/role/auth/tool/status", control.OrgUserRoleToolStatus)  // 更新组织用户角色的已授权工具状态
 	api.POST("/org/role/auth/tool/route", control.OrgUserRoleToolRoleAuth) // 给组织用户的角色的工具授权路由
 	api.POST("/org/role/create", control.CreateRole)                       // 给组织创建角色
 

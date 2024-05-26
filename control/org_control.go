@@ -145,6 +145,35 @@ func GetOrgUserList(c *gin.Context) {
 	return
 }
 
+// GetOrgAllUserList
+// @Summary 	获取所有的用户列表
+// @Description 获取所有的用户列表
+// @Tags 		管理系统
+// @Produces 	json
+// @Param 		args query OrgUserListArgs true "查询参数"
+// @Router 		/api/org/user/all [get]
+func GetOrgAllUserList(c *gin.Context) {
+	var err error
+	var users []*model.User
+	var args OrgUserListArgs
+	web.ShouldJSON(c, &args)
+	limit, offset := 0, 0
+	var count int64 = 0
+	if limit, offset, err = pageutils.PageNumber(args.Page, args.PageSize); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("分页参数错误")))
+		return
+	}
+	args.Start, args.End = offset, limit
+
+	if users, count, err = dao.OrgMapper.GetOrgAllUserList(args); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
+		return
+	}
+	page := resp.NewPage(count, users)
+	c.JSON(200, resp.Success(page, resp.Msg("查询成功")))
+	return
+}
+
 // GetOrgRoleList
 // @Summary 	获取组织下所有的角色列表
 // @Description 获取组织下所有的角色列表
@@ -173,6 +202,14 @@ func GetOrgRoleList(c *gin.Context) {
 	c.JSON(200, resp.Success(page, resp.Msg("查询成功")))
 }
 
+// UpdateOrgInfo
+// @Summary 	更新组织信息
+// @Description 更新组织信息
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body UpdateOrg true "查询参数"
+// @Router 		/api/org/role/list [post]
 func UpdateOrgInfo(c *gin.Context) {
 	var err error
 	var args *UpdateOrg
@@ -187,6 +224,13 @@ func UpdateOrgInfo(c *gin.Context) {
 	c.JSON(200, resp.Success(nil, resp.Msg("更新成功")))
 }
 
+// Dictionary
+// @Summary 	获取字典信息
+// @Description 获取字典信息
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Router 		/api/dictionary [get]
 func Dictionary(c *gin.Context) {
 	var err error
 	var dict []*model.AppDictionary
@@ -202,6 +246,16 @@ func Dictionary(c *gin.Context) {
 	c.JSON(200, resp.Success(dicts, resp.Msg("查询成功")))
 }
 
+// GetOrgUserAuthTool
+// @Summary 	获取组织指定用户的所有已授权工具列表
+// @Description 获取组织指定用户的所有已授权工具列表
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		roleId query string true "角色id"
+// @Param 		orgId query string true "组织id"
+// @Param 		userId query string true "用户id"
+// @Router 		/api/org/user/tool [get]
 func GetOrgUserAuthTool(c *gin.Context) {
 	var err error
 	roleId := c.Query("roleId")
@@ -221,29 +275,14 @@ func GetOrgUserAuthTool(c *gin.Context) {
 	c.JSON(200, resp.Success(tools))
 }
 
-/*
-	func GetOrgRoleAuthToolRouter(c *gin.Context) {
-		var err error
-		roleId := c.Query("roleId")
-		orgId := c.Query("orgId")
-		userId := c.Query("userId")
-		toolId := c.Query("toolId")
-		params := map[string]any{
-			"RoleId": roleId,
-			"UserId": userId,
-			"OrgId":  orgId,
-			"ToolId": toolId,
-		}
-		routers := []*model.Router{}
-		if routers, err = AuthMapper.SelectOrgRoleAuthToolRouter(params); err != nil {
-			logs.Error(err.Error())
-			c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
-			return
-		}
-		routerTree := tree.BuildTree("", routers)
-		c.JSON(200, resp.Success(routerTree))
-	}
-*/
+// OrgUserRoleAuth
+// @Summary 	给组织的用户授权角色或取消授权角色
+// @Description 给组织的用户授权角色,默认情况下,分配授权角色就会获得角色授权有的授权,如需要取消某些授权,则需要手动处理取消.取消对应授权角色同时删除对应授权数据
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body AuthArgs true "请求体"
+// @Router 		/api/org/role/auth [post]
 func OrgUserRoleAuth(c *gin.Context) {
 	var err error
 	var args *AuthArgs
@@ -269,9 +308,13 @@ func OrgUserRoleAuth(c *gin.Context) {
 	}
 
 	// 2.给用户授权对应角色的所有权限
+	// 工具栏授权
 	var authTool []model.AuthTool
+	// 工具栏id
 	var toolIds []string
+	// 工具栏路由授权
 	var authToolRouter []model.AuthRouter
+	// 工具栏路由id
 	var toolRouterIds []string
 	queryParams := map[string]any{}
 	queryParams["OrgId"] = args.OrgId
@@ -408,6 +451,26 @@ func OrgUserRoleAuth(c *gin.Context) {
 	c.JSON(200, resp.Success(nil))
 }
 
+// OrgUserRoleStatus
+// @Summary 	给组织的用户已授权的角色变更状态
+// @Description 给组织的用户已授权的角色变更状态,启用或禁用
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body AuthArgs true "请求体"
+// @Router 		/api/org/role/auth/status [post]
+func OrgUserRoleStatus(c *gin.Context) {
+	// todo 待实现
+}
+
+// OrgUserRoleToolAuth
+// @Summary 	给组织用户的角色授权工具
+// @Description 给组织用户的角色授权工具
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body AuthArgs true "请求体"
+// @Router 		/api/org/role/auth/tool [post]
 func OrgUserRoleToolAuth(c *gin.Context) {
 	var err error
 	var args *AuthArgs
@@ -450,6 +513,26 @@ func OrgUserRoleToolAuth(c *gin.Context) {
 	c.JSON(http.StatusOK, resp.Success(nil))
 }
 
+// OrgUserRoleToolStatus
+// @Summary 	给组织用户的角色授权工具
+// @Description 给组织用户的角色授权工具
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body AuthArgs true "请求体"
+// @Router 		/api/org/role/auth/tool/status [post]
+func OrgUserRoleToolStatus(c *gin.Context) {
+	// todo 待实现
+}
+
+// OrgUserRoleToolRoleAuth
+// @Summary 	给组织用户的角色的工具授权路由
+// @Description 给组织用户的角色的工具授权路由
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		args body AuthArgs true "请求体"
+// @Router 		/api/org/role/auth/tool/route [post]
 func OrgUserRoleToolRoleAuth(c *gin.Context) {
 	var err error
 	var args *AuthArgs
@@ -492,8 +575,20 @@ func OrgUserRoleToolRoleAuth(c *gin.Context) {
 	c.JSON(http.StatusOK, resp.Success(nil))
 }
 
+// GetOrgUserAuthToolRouter
+// @Summary 	获取组织指定用户的所有已授权工具下的所有路由树
+// @Description 获取组织指定用户的所有已授权工具下的所有路由树
+// @Tags 		管理系统
+// @Accept 		json
+// @Produces 	json
+// @Param 		roleId query string true "角色id"
+// @Param 		orgId query string true "组织id"
+// @Param 		userId query string true "用户id"
+// @Param 		toolId query string true "工具id"
+// @Router 		/api/org/user/tool/router [get]
 func GetOrgUserAuthToolRouter(c *gin.Context) {
 	var err error
+	var routers []*model.Router
 	roleId := c.Query("roleId")
 	orgId := c.Query("orgId")
 	userId := c.Query("userId")
@@ -504,7 +599,6 @@ func GetOrgUserAuthToolRouter(c *gin.Context) {
 		"OrgId":  orgId,
 		"ToolId": toolId,
 	}
-	routers := []*model.Router{}
 	if routers, err = dao.AuthMapper.SelectOrgUserAuthToolRouter(params); err != nil {
 		logs.Error(err.Error())
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))

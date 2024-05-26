@@ -17,6 +17,13 @@
         where org_id ={OrgId} limit {End} offset {Start}
     </select>
 
+    <select id="GetOrgAllUserList">
+        select u.*
+        from app_org_user ou
+                 left join app_user u on ou.user_id = u.id
+        limit {End} offset {Start}
+    </select>
+
     <select id="GetOrgRoleList">
         select r.*
         from app_role r

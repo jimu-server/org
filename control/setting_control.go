@@ -61,7 +61,6 @@ func UpdateSettings(c *gin.Context) {
 	// 删除缓存
 	if err = redisUtil.Del(fmt.Sprintf("%s:%s", setting.USER_SETTING, token.Id)); err != nil {
 		logs.Error(err.Error())
-		c.JSON(500, resp.Error(err, resp.Msg("更新失败")))
 		return
 	}
 }

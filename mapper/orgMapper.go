@@ -9,9 +9,10 @@ type OrgMapper struct {
 	// 查询所有组织
 	AllOrg func(any) ([]*model.Org, error)
 	// 分页查询 子组织
-	GetOrgChild    func(any) ([]*model.Org, int64, error)
-	GetOrgUserList func(any) ([]*model.User, int64, error)
-	GetOrgRoleList func(any) ([]*model.Role, int64, error)
+	GetOrgChild       func(any) ([]*model.Org, int64, error)
+	GetOrgUserList    func(any) ([]*model.User, int64, error)
+	GetOrgAllUserList func(any) ([]*model.User, int64, error)
+	GetOrgRoleList    func(any) ([]*model.Role, int64, error)
 
 	// 创建组织
 	CreateOrg func(any) error
