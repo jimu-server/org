@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,8 @@ import (
 	"github.com/jimu-server/model"
 	"github.com/jimu-server/mq/mq_key"
 	"github.com/jimu-server/mq/rabbmq"
+	"github.com/jimu-server/notify"
+	"github.com/jimu-server/notify/template"
 	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/oss"
 	"github.com/jimu-server/redis/cache"
@@ -64,6 +67,7 @@ func Register(c *gin.Context) {
 		Name:     body.Name,
 		Account:  body.Account,
 		Password: hash,
+		Picture:  "https://im-1252940994.cos.ap-nanjing.myqcloud.com/go.jpg",
 	}
 	// 检查账号是否存在
 	if exists, err = dao.AccountMapper.IsRegister(account); err != nil {
@@ -149,7 +153,7 @@ func Login(c *gin.Context) {
 	}
 	account.Account = body.Account
 	if exists, err = dao.AccountMapper.IsRegister(account); err != nil {
-		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
+		c.JSON(500, resp.Error(err, resp.Msg("密码错误")))
 		return
 	}
 	if !exists {
@@ -173,13 +177,20 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	param := map[string]any{
+		"message": "登录成功",
+	}
+	buf, _ := json.Marshal(param)
 	data := &model.AppNotify{
 		Id:         uuid.String(),
 		PubId:      "system",
 		SubId:      account.Id,
 		Title:      "登录通知",
-		MsgType:    1,
+		MsgType:    notify.Success,
 		Text:       "成功登录",
+		Status:     notify.UnRead,
+		Param:      string(buf),
+		Template:   template.LoginTemplate,
 		CreateTime: time.Now().Format(time.DateTime),
 		UpdateTime: time.Now().Format(time.DateTime),
 	}
