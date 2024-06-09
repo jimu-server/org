@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jimu-server/common/resp"
 	"github.com/jimu-server/middleware/auth"
+	"github.com/jimu-server/model"
 	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/redis/redisUtil"
 	"github.com/jimu-server/setting"
@@ -63,4 +64,15 @@ func UpdateSettings(c *gin.Context) {
 		logs.Error(err.Error())
 		return
 	}
+}
+
+func PluginList(c *gin.Context) {
+	var err error
+	var list []*model.AppChatPlugin
+	if list, err = dao.AccountMapper.GetGptPlugin(); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("获取失败")))
+		return
+	}
+	c.JSON(200, resp.Success(list, resp.Msg("获取成功")))
 }

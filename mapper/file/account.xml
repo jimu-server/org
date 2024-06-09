@@ -138,4 +138,10 @@
         </for>
     </insert>
 
+
+    <select id="GetGptPlugin">
+        select *
+        from app_chat_plugin
+    </select>
+
 </mapper>

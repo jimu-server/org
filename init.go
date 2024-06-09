@@ -97,6 +97,9 @@ func init() {
 	api.POST("/user/secure/update/phone", control.UpdateUserPhone)           // 更新用户手机
 	api.POST("/user/secure/update/email", control.UpdateUserEmail)           // 更新用户邮箱
 	api.POST("/user/secure/check/password", control.CheckPassword)           // 验证用户密码
-	api.POST("/settings", control.GetSettings)                               // 获取用户设置
-	api.POST("/settings/update", control.UpdateSettings)                     // 更新用户设置
+
+	api.POST("/settings", control.GetSettings)           // 获取用户设置
+	api.POST("/settings/update", control.UpdateSettings) // 更新用户设置
+
+	api.GET("/chat/plugin", control.PluginList) // 获取默认组织信息
 }

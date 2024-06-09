@@ -33,4 +33,6 @@ type AccountMapper struct {
 	UpdateSetting      func(any) error
 
 	AddSetting func(any, *sql.Tx) error
+
+	GetGptPlugin func() ([]*model.AppChatPlugin, error)
 }
