@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"database/sql"
 	"github.com/jimu-server/model"
 )
 
@@ -20,4 +21,6 @@ type ToolMapper struct {
 	DeleteTool func(any) error
 	// 更新工具
 	UpdateTool func(any) error
+
+	ToolStatus func(any, *sql.Tx) error
 }

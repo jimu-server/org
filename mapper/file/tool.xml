@@ -39,4 +39,8 @@
                       where router_name = {RouterName} or path = {Path} or component = {Component}) as flag;
     </select>
 
+    <update id="ToolStatus">
+        update app_tool set status={status} where id={id}
+    </update>
+
 </mapper>

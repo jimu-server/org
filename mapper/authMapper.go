@@ -69,4 +69,7 @@ type AuthMapper struct {
 
 	// 根据id查询路由
 	SelectRouterById func(any) ([]*model.Router, error)
+
+	// 禁用用户所授权的工具
+	UpdateToolStatus func(any, *sql.Tx) error
 }

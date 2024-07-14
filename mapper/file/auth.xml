@@ -296,6 +296,7 @@
         from app_org_user_role_tool_auth
         where user_id = {userId}
           and org_id = {orgId}
+          and status = true
           and role_id in
         <for slice="{roles}" item="item" open="(" separator="," close=")">
             {item}
@@ -330,6 +331,14 @@
             {item}
         </for>
     </select>
+    
+    <update id="UpdateToolStatus">
+        update app_org_user_role_tool_auth
+        set status={status}
+        where org_id = {orgId}
+          and user_id = {userId}
+          and tool_id = {toolId}
+    </update>
 
 
 </mapper>

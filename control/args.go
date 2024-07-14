@@ -43,6 +43,16 @@ type OrgUserListArgs struct {
 	Start int `form:"start" json:"start"`
 	//  结束
 	End int `form:"end" json:"end"`
+	//  性别
+	Gender int `form:"gender" json:"gender"`
+	// 账号
+	Account string `form:"account" json:"account"`
+	// 昵称
+	Name string `form:"name" json:"name"`
+	// 邮箱
+	Email string `form:"email" json:"email"`
+	// 手机
+	Phone string `form:"phone" json:"phone"`
 }
 
 type OrgRoleListArgs struct {

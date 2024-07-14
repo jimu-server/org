@@ -68,6 +68,7 @@ func init() {
 	api.POST("/tool/create", control.CreateTool)            // 创建工具
 	api.POST("/tool/delete", control.DeleteTool)            // 删除工具
 	api.GET("/tool/list", control.GetTool)                  // 获取工具列表
+	api.POST("/tool/status", control.UpdateToolStatus)      // 更新工具状态
 	api.GET("/tool/router/list", control.GetToolRouterList) // 获取工具路由列表
 
 	api.POST("/fun/create", control.CreateFun) // 创建功能

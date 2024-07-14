@@ -1,9 +1,11 @@
 package control
 
 import (
+	"database/sql"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/jimu-server/common/resp"
+	"github.com/jimu-server/db"
 	"github.com/jimu-server/model"
 	"github.com/jimu-server/org/dao"
 	"github.com/jimu-server/util/pageutils"
@@ -70,6 +72,37 @@ func GetTool(c *gin.Context) {
 	}
 	page := resp.NewPage(count, orgs)
 	c.JSON(200, resp.Success(page, resp.Msg("查询成功")))
+}
+
+func UpdateToolStatus(c *gin.Context) {
+	var err error
+	var args map[string]interface{}
+	web.ShouldJSON(c, &args)
+	// 工具栏禁用，启用 root 用户所授权的工具进行同步禁用启用
+	var begin *sql.Tx
+	begin, err = db.DB.Begin()
+	// 禁用工具
+	if err = dao.ToolMapper.ToolStatus(args, begin); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("操作失败")))
+		return
+	}
+	// root 用户所授权的工具进行同步禁用启用
+	args["userId"] = ROOT_ID
+	args["orgId"] = ROOT_ORG_ID
+	if err = dao.AuthMapper.UpdateToolStatus(args, begin); err != nil {
+		logs.Error(err.Error())
+		if err = begin.Rollback(); err != nil {
+			logs.Error(err.Error())
+		}
+		c.JSON(500, resp.Error(err, resp.Msg("操作失败")))
+		return
+	}
+	if err = begin.Commit(); err != nil {
+		logs.Error(err.Error())
+		c.JSON(500, resp.Error(err, resp.Msg("操作失败")))
+		return
+	}
+	c.JSON(200, resp.Success(nil, resp.Msg("操作成功")))
 }
 
 func GetToolRouterList(c *gin.Context) {

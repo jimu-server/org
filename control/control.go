@@ -7,6 +7,7 @@ import (
 const (
 	// ROOT_ORG_ID 跟组织ID 数据库初始化脚本中已经初始化
 	ROOT_ORG_ID = "1"
+	ROOT_ID     = "1"
 	// ROOT_ORG_DEFAULT_ROLE 跟组织默认角色ID 数据库初始化脚本中已经初始化
 	ROOT_ORG_DEFAULT_ROLE = "3"
 
