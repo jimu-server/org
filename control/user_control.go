@@ -61,7 +61,7 @@ func Register(c *gin.Context) {
 	}
 
 	hash := accountutil.Password(body.Password)
-	account := model.User{
+	account := &model.User{
 		Id:       uuid.String(),
 		Name:     body.Name,
 		Account:  body.Account,
@@ -69,7 +69,7 @@ func Register(c *gin.Context) {
 		Picture:  "https://im-1252940994.cos.ap-nanjing.myqcloud.com/go.jpg",
 	}
 	// 检查账号是否存在
-	if exists, err = dao.AccountMapper.IsRegister(account); err != nil {
+	if exists, err = dao.AccountMapper.IsRegister(*account); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
 	}
@@ -84,7 +84,7 @@ func Register(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
 	}
-	if err = dao.AccountMapper.Register(account, begin); err != nil {
+	if err = dao.AccountMapper.Register(*account, begin); err != nil {
 		logs.Error(err.Error())
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
@@ -117,7 +117,7 @@ func Register(c *gin.Context) {
 		return
 	}
 	// todo 默认注册用户定制化配置(默认授权一部分工具或者路由)
-	if err = InitRegisterUser(account, begin); err != nil {
+	if err = InitRegisterUser(*account, begin); err != nil {
 		begin.Rollback()
 		c.JSON(500, resp.Error(err, resp.Msg("注册失败,请联系管理员")))
 		return
@@ -143,35 +143,39 @@ func Register(c *gin.Context) {
 func Login(c *gin.Context) {
 	var body LoginArgs
 	var err error
-	var exists bool
-	var account model.User
+	//var exists bool
+	var account *model.User
 	web.BindJSON(c, &body)
 	if body.Account == "" || body.Password == "" {
 		c.JSON(500, resp.Error(errors.New("参数错误"), resp.Msg("缺少账号,密码")))
 		return
 	}
 	account.Account = body.Account
-	if exists, err = dao.AccountMapper.IsRegister(account); err != nil {
+	if first := DB.Model(&model.User{}).Where("account =?", body.Account).First(&account); first.Error != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("密码错误")))
 		return
 	}
-	if !exists {
+	/*	if exists, err = dao.AccountMapper.IsRegister(*account); err != nil {
+		c.JSON(500, resp.Error(err, resp.Msg("密码错误")))
+		return
+	}*/
+	if account == nil {
 		c.JSON(500, resp.Error(errors.New("密码错误"), resp.Msg("密码错误")))
 		return
 	}
-	if account, err = dao.AccountMapper.SelectAccount(map[string]any{
-		"Account": body.Account,
-	}); err != nil {
-		c.JSON(500, resp.Error(err, resp.Msg("登录失败,请联系管理员")))
-		return
-	}
+	/*	if *account, err = dao.AccountMapper.SelectAccount(map[string]any{
+			"Account": body.Account,
+		}); err != nil {
+			c.JSON(500, resp.Error(err, resp.Msg("登录失败,请联系管理员")))
+			return
+		}*/
 	if !accountutil.VerifyPasswd(account.Password, body.Password) {
 		c.JSON(500, resp.Error(errors.New("密码错误"), resp.Msg("密码错误")))
 		return
 	}
 	// 生成 app token
 	var tokenStr string
-	if tokenStr, err = auth.CreateToken(account); err != nil {
+	if tokenStr, err = auth.CreateToken(*account); err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("登录失败,请联系管理员")))
 		return
 	}

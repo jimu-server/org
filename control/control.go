@@ -1,6 +1,7 @@
 package control
 
 import (
+	"github.com/jimu-server/db"
 	"github.com/jimu-server/logger"
 )
 
@@ -17,4 +18,5 @@ const (
 
 var (
 	logs = logger.Logger
+	DB   = db.Gorm
 )
