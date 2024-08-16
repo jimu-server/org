@@ -134,12 +134,16 @@ func GetOrgUserList(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("分页参数错误")))
 		return
 	}
-	args.Start, args.End = offset, limit
 	var count int64 = 0
-	if users, count, err = dao.OrgMapper.GetOrgUserList(args); err != nil {
+	tx := db.Gorm.Select("u.*").Table("app_org_user ou").
+		Joins("left join app_user u on ou.user_id=u.id ").
+		Where("ou.org_id=?", args.OrgId).
+		Offset(offset).Limit(limit).Find(&users)
+	if err = tx.Error; err != nil {
 		c.JSON(500, resp.Error(err, resp.Msg("查询失败")))
 		return
 	}
+	tx.Count(&count)
 	page := resp.NewPage(count, users)
 	c.JSON(200, resp.Success(page, resp.Msg("查询成功")))
 	return

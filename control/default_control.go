@@ -3,6 +3,7 @@ package control
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/jimu-server/common/resp"
+	"github.com/jimu-server/db"
 	"github.com/jimu-server/middleware/auth"
 	"github.com/jimu-server/model"
 	"github.com/jimu-server/org/dao"
@@ -51,14 +52,7 @@ func GetOrgDefaultRole(c *gin.Context) {
 
 func UserInfo(c *gin.Context) {
 	token := c.MustGet(auth.Key).(*auth.Token)
-	var err error
 	var user *model.User
-	params := map[string]any{
-		"UserId": token.Id,
-	}
-	if user, err = dao.DefaultInfoMapper.SelectUserInfo(params); err != nil {
-		c.JSON(http.StatusInternalServerError, resp.Error(err, resp.Msg("获取用户信息失败")))
-		return
-	}
+	db.Gorm.Find(&user, "id =?", token.Id).First(&user)
 	c.JSON(http.StatusOK, resp.Success(user, resp.Msg("获取用户信息成功")))
 }

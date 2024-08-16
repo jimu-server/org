@@ -143,8 +143,7 @@ func Register(c *gin.Context) {
 func Login(c *gin.Context) {
 	var body LoginArgs
 	var err error
-	//var exists bool
-	var account *model.User
+	account := new(model.User)
 	web.BindJSON(c, &body)
 	if body.Account == "" || body.Password == "" {
 		c.JSON(500, resp.Error(errors.New("参数错误"), resp.Msg("缺少账号,密码")))
@@ -155,20 +154,10 @@ func Login(c *gin.Context) {
 		c.JSON(500, resp.Error(err, resp.Msg("密码错误")))
 		return
 	}
-	/*	if exists, err = dao.AccountMapper.IsRegister(*account); err != nil {
-		c.JSON(500, resp.Error(err, resp.Msg("密码错误")))
-		return
-	}*/
 	if account == nil {
 		c.JSON(500, resp.Error(errors.New("密码错误"), resp.Msg("密码错误")))
 		return
 	}
-	/*	if *account, err = dao.AccountMapper.SelectAccount(map[string]any{
-			"Account": body.Account,
-		}); err != nil {
-			c.JSON(500, resp.Error(err, resp.Msg("登录失败,请联系管理员")))
-			return
-		}*/
 	if !accountutil.VerifyPasswd(account.Password, body.Password) {
 		c.JSON(500, resp.Error(errors.New("密码错误"), resp.Msg("密码错误")))
 		return
